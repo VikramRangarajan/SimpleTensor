@@ -11,12 +11,12 @@ else:
 
 class Tensor:
     """
-    Tensor class
+    Tensor class. This is a box around a numpy array, but with support for reverse mode automatic differentiation.
 
     Raises
     ------
     NotImplementedError
-        For invalid operations
+        For invalid operations, or if Tensor.backward() is called on Tensor whose size is not 1.
     """
 
     taken_names = {None}
@@ -56,6 +56,22 @@ class Tensor:
         return astensor(self._array[x])
 
     def backward(self, zero_grad=True):
+        r"""
+        Backpropagation Method. If it is called on a size 1 tensor L, then the gradient for each tensor X which
+        is a part of its creation graph w.r.t. this tensor's value is calculated (:math:`\frac{\partial L}{\partial X}`), 
+        and stored in the tensor's .grad attribute.
+
+        Parameters
+        ----------
+        zero_grad : bool, optional
+            Option to set all gradients in autodiff graph to 0 before setting them.
+            If False, then new gradients are added to previous ones, by default True
+
+        Raises
+        ------
+        NotImplementedError
+            Raised if the tensor which backward() is called on does not have a size of 1.
+        """
         if self.size != 1:
             raise NotImplementedError(
                 "Can only call backward() on a single value Tensor"
@@ -70,7 +86,7 @@ class Tensor:
                     topological_sort(child)
                 topo_sorted_nodes.append(v)
 
-        topological_sort(self)  # compare my solution to this
+        topological_sort(self)
         if zero_grad:
             for node in topo_sorted_nodes:
                 node.grad = np.zeros_like(node.grad, dtype=node.dtype)
@@ -79,10 +95,25 @@ class Tensor:
             node._backward()
 
     """
-    PYTHON MAGIC FUNCTIONS
+    BINARY OPERATIONS
+
+    TODO: Rest of binary operations
+    Optional:
+    convolve
+    correlate
+    >, <, >=, <=, !=, ==
+    
     """
 
     def __add__(self, other):
+        """
+        Adds two tensor-like objects together.
+
+        Returns
+        -------
+        Tensor
+            Sum of both inputs
+        """
         other = astensor(other)
         res = Tensor(self._array + other._array)
         res._op = Op.ADD
@@ -100,6 +131,14 @@ class Tensor:
     __iadd__ = __add__
 
     def __sub__(self, other):
+        """
+        Subtracts two tensor-like objects.
+
+        Returns
+        -------
+        Tensor
+            Subtraction of both inputs
+        """
         other = astensor(other)
         res = Tensor(self._array - other._array)
         res._op = Op.SUB
@@ -119,6 +158,14 @@ class Tensor:
     __isub__ = __sub__
 
     def __mul__(self, other):
+        """
+        Multiplies (element-wise) two tensor-like objects together.
+
+        Returns
+        -------
+        Tensor
+            Multiplication (Hadamard product) of two tensors
+        """
         other = astensor(other)
         res = Tensor(self._array * other._array)
         res._op = Op.MUL
@@ -135,20 +182,100 @@ class Tensor:
     __imul__ = __mul__
     __rmul__ = __mul__
 
+    def __matmul__(self, other):
+        """
+        Matrix Multiplication. Mimics numpy @ behavior.
+
+        There are 4 cases:  
+        
+        - Both arguments are 2D (normal matrix multiplication)  
+        - Either argument is >2D (broadcasting is done accordingly)  
+        - First Tensor is 1D (1 is added to the beginning of the tensor's shape, matrix multiplication is applied, then the added 1 is removed from the output tensor's shape)  
+        - Second Tensor is 1D (1 is added to the end of the tensor's shape, matrix multiplication is applied, then the added 1 is removed from the output tensor's shape)  
+
+        Parameters
+        ----------
+        other : array-like
+            Right side of matrix multiplication
+
+        Returns
+        -------
+        Tensor
+            Matrix product of two input arrays
+        """
+        other = astensor(other)
+
+        prepended = self.ndim == 1
+        appended = other.ndim == 1
+
+        if prepended and appended:
+            return (self * other).sum()
+
+        res = Tensor(self._array @ other._array)
+        res._op = Op.MATMUL
+        res._children = [self, other]
+
+        if self.ndim == other.ndim == 2:
+            # 2D Tensor @ 2D Tensor
+
+            def _backward():
+                self.grad += res.grad @ other._array.T
+                other.grad += self._array.T @ res.grad
+        else:
+            if prepended:
+                # 1D Tensor @ >=2D Tensor
+                op_axes = _broadcasted_axes(np.array(0), other[..., 0, 0])
+
+                def _backward():
+                    self.grad += (
+                        (res.grad[..., None, :] @ other._array.swapaxes(-1, -2))
+                        .sum(op_axes[0])
+                        .squeeze(-2)
+                    )
+                    other.grad += (self._array[:, None] @ res.grad[..., None, :]).sum(
+                        op_axes[1]
+                    )
+
+            elif appended:
+                # >=2D Tensor @ 1D Tensor
+                op_axes = _broadcasted_axes(self[..., 0, 0], np.array(0))
+
+                def _backward():
+                    self.grad += (res.grad[..., None] @ other._array[:, None].T).sum(
+                        op_axes[0]
+                    )
+                    other.grad += (
+                        (self._array.swapaxes(-1, -2) @ res.grad[..., None])
+                        .sum(op_axes[1])
+                        .squeeze(-1)
+                    )
+
+            else:
+                # >2D Tensor @ >2D Tensor
+                op_axes = _broadcasted_axes(self[..., 0, 0], other[..., 0, 0])
+
+                def _backward():
+                    self.grad += (res.grad @ other._array.swapaxes(-1, -2)).sum(
+                        op_axes[0]
+                    )
+                    other.grad += (self._array.swapaxes(-1, -2) @ res.grad).sum(
+                        op_axes[1]
+                    )
+
+        res._backward = _backward
+        return res
+
     """
-    TODO:
-    __mul__: Testing
+    TODO: Binary Magic Functions
+    __mul__: Done
     __imul__: Testing
     __rmul__: Testing
-    __matmul__
-    __rmatmul__
-    __imatmul__
+    __matmul__: Done
+    __rmatmul__: Done
+    __imatmul__: Done
     __truediv__
     __rtruediv__
     __itruediv__
-    __floordiv_
-    __rfloordiv__
-    __ifloordiv__
     __pow__
     __rpow__
     __ipow__
@@ -156,27 +283,53 @@ class Tensor:
     Optional:
     __abs__
     __float__, __int__, __complex__
+    __floordiv_
+    __rfloordiv__
+    __ifloordiv__
     """
 
     """
-    UNARY OPERATORS
+    UNARY OPERATIONS
+
+    TODO:
+    log
+    exp
+    transpose
+    squeeze
+    expand_dims
+    reshape
+    relu
+
+    Optional:
+    sin, cos, tan
+    inverse trig functions
+    max
+    min
+    std
     """
 
     def __neg__(self):
-        res = Tensor(-self._array)
+        res = self * -1
         res._op = Op.NEG
-        res.children = [self]
-
-        def _backward():
-            self.grad += -res.grad
-
-        res._backward = _backward
         return res
 
     def __pos__(self):
         return self
 
     def sum(self, axis=None):
+        """
+        Sums an array over given axes
+
+        Parameters
+        ----------
+        axis : tuple, optional
+            Axes over which to sum over, by default None
+
+        Returns
+        -------
+        Tensor
+            Result of sum operation over axes
+        """
         res = Tensor(self._array.sum(axis=axis))
         res._op = Op.SUM
         res._children = [self]
@@ -192,6 +345,21 @@ class Tensor:
 
 
 def astensor(a, dtype=None):
+    """
+    Converts input to a Tensor
+
+    Parameters
+    ----------
+    a : array-like
+        Iterable or scalar quantity (not jagged)
+    dtype : numpy datatype, optional
+        Datatype for which the underlying numpy array's datatype should be, by default None
+
+    Returns
+    -------
+    Tensor
+        Tensor version of input
+    """
     if isinstance(a, Tensor):
         return a
     else:

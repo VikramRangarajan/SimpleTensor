@@ -22,7 +22,7 @@ classifiers = [
 GPU = ["cupy"]
 
 [project.urls]
-# Homepage = ""
+Homepage = "https://vikramrangarajan.github.io/SimpleTensor/"
 Issues = "https://github.com/VikramRangarajan/SimpleTensor/issues"
-# Documentation = ""
+Documentation = "https://vikramrangarajan.github.io/SimpleTensor/docs.html"
 Repository = "https://github.com/VikramRangarajan/SimpleTensor"
