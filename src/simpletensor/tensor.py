@@ -2,9 +2,10 @@ from . import USE_GPU
 import numpy as np
 from .operation import Op
 import uuid
+from importlib import import_module
 
 if USE_GPU:
-    import cupy as np
+    np = import_module("cupy")
 else:
     import numpy as np
 
@@ -58,7 +59,7 @@ class Tensor:
     def backward(self, zero_grad=True):
         r"""
         Backpropagation Method. If it is called on a size 1 tensor L, then the gradient for each tensor X which
-        is a part of its creation graph w.r.t. this tensor's value is calculated (:math:`\frac{\partial L}{\partial X}`), 
+        is a part of its creation graph w.r.t. this tensor's value is calculated (:math:`\frac{\partial L}{\partial X}`),
         and stored in the tensor's .grad attribute.
 
         Parameters
@@ -186,12 +187,12 @@ class Tensor:
         """
         Matrix Multiplication. Mimics numpy @ behavior.
 
-        There are 4 cases:  
-        
-        - Both arguments are 2D (normal matrix multiplication)  
-        - Either argument is >2D (broadcasting is done accordingly)  
-        - First Tensor is 1D (1 is added to the beginning of the tensor's shape, matrix multiplication is applied, then the added 1 is removed from the output tensor's shape)  
-        - Second Tensor is 1D (1 is added to the end of the tensor's shape, matrix multiplication is applied, then the added 1 is removed from the output tensor's shape)  
+        There are 4 cases:
+
+        - Both arguments are 2D (normal matrix multiplication)
+        - Either argument is >2D (broadcasting is done accordingly)
+        - First Tensor is 1D (1 is added to the beginning of the tensor's shape, matrix multiplication is applied, then the added 1 is removed from the output tensor's shape)
+        - Second Tensor is 1D (1 is added to the end of the tensor's shape, matrix multiplication is applied, then the added 1 is removed from the output tensor's shape)
 
         Parameters
         ----------
@@ -265,6 +266,73 @@ class Tensor:
         res._backward = _backward
         return res
 
+    def __rmatmul__(self, other):
+        other = astensor(other)
+        return other @ self
+
+    __imatmul__ = __matmul__
+
+    def __pow__(self, other):
+        """
+        One tensor raised to the power of another tensor.
+
+        Parameters
+        ----------
+        other : Tensor
+            Exponent tensor
+
+        Returns
+        -------
+        Tensor
+            Result tensor of A**B
+        """
+        other = astensor(other)
+        res = Tensor(self._array**other._array)
+        res._op = Op.POW
+        res._children = [self, other]
+        op_axes = _broadcasted_axes(self, other)
+
+        def _backward():
+            self.grad += np.sum(
+                res.grad * other._array * self._array ** (other._array - 1),
+                axis=op_axes[0],
+            )
+            other.grad += np.sum(
+                res.grad * self._array**other._array * np.log(self._array),
+                axis=op_axes[1],
+            )
+
+        res._backward = _backward
+        return res
+
+    def __rpow__(self, other):
+        other = astensor(other)
+        return other**self
+
+    __ipow__ = __pow__
+
+    def __truediv__(self, other):
+        """
+        Division between two Tensors. A division A / B is
+        defined as A * B**-1.
+
+        Parameters
+        ----------
+        other : array-like
+            Divisor tensor
+
+        Returns
+        -------
+        Tensor
+            Result tensor of A / B
+        """
+        return self * other**-1
+
+    def __rtruediv__(self, other):
+        return self**-1 * other
+
+    __itruediv__ = __truediv__
+
     """
     TODO: Binary Magic Functions
     __mul__: Done
@@ -309,9 +377,7 @@ class Tensor:
     """
 
     def __neg__(self):
-        res = self * -1
-        res._op = Op.NEG
-        return res
+        return self * -1
 
     def __pos__(self):
         return self
@@ -342,6 +408,59 @@ class Tensor:
 
         res._backward = _backward
         return res
+
+    def mean(self, axis=None):
+        """
+        Mean of an array over given axes
+
+        Parameters
+        ----------
+        axis : tuple, optional
+            Axes over which to sum over, by default None
+
+        Returns
+        -------
+        Tensor
+            Result of mean operation over axes
+        """
+        size = float(self.size)
+        if axis is not None:
+            size = float(np.prod([self.shape[i] for i in axis]))
+        return self.sum(axis=axis) / size
+
+    def std(self, axis=None, ddof=0):
+        """
+        Standard deviation over given axes.
+
+        Parameters
+        ----------
+        axis : tuple, optional
+            Axes over which to sum over, by default None
+        ddof : int, optional
+            Delta degrees of freedom, where the divisor is N - ddof.
+            ddof = 1 will give you sample std. By default, ddof = 0
+        """
+        df = float(self.size - ddof)
+        if axis is not None:
+            df = float(np.prod([self.shape[i] for i in axis]) - ddof)
+        return (((self - self.mean(axis)) ** 2).sum(axis) / df) ** 0.5
+
+    def var(self, axis=None, ddof=0):
+        """
+        Variance over given axes.
+
+        Parameters
+        ----------
+        axis : tuple, optional
+            Axes over which to sum over, by default None
+        ddof : int, optional
+            Delta degrees of freedom, where the divisor is N - ddof.
+            ddof = 1 will give you sample std. By default, ddof = 0
+        """
+        df = float(self.size - ddof)
+        if axis is not None:
+            df = float(np.prod([self.shape[i] for i in axis]) - ddof)
+        return ((self - self.mean(axis)) ** 2).sum(axis) / df
 
 
 def astensor(a, dtype=None):

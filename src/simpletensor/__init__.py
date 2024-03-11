@@ -1,19 +1,16 @@
-# ruff: noqa: E401, F401, F403
+# ruff: noqa: E402, F403
+import importlib
 
-try:
-    import cupy, cupyx
+cupy = importlib.util.find_spec("cupy")
+cupyx = importlib.util.find_spec("cupyx")
 
-    x = cupy.array([1, 2, 3])
-    y = cupy.array([4, 5, 6])
-    x + y
+if cupy is not None and cupyx is not None:
     USE_GPU = True
     print("Cupy successfully imported, using GPU")
-except Exception as e:
-    if isinstance(e, ImportError):
-        print("Cupy failed to import, using CPU (numpy & scipy)")
-    else:
-        print("Cupy caused error while importing: " + e)
+else:
+    print("Cupy failed to import, using CPU (numpy & scipy)")
     USE_GPU = False
+
 
 from .tensor import *
 from .operation import *
