@@ -79,7 +79,7 @@ html_theme_options = {
 html_static_path = []
 
 autodoc_default_options = {
-    "special-members": "__add__, __sub__, __mul__, __div__, __pow__, __matmul__",
+    "special-members": "__add__, __sub__, __mul__, __truediv__, __pow__, __matmul__, __getitem__",
 }
 numpydoc_show_class_members = False
 autosummary_generate = True

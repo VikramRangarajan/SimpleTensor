@@ -53,9 +53,6 @@ class Tensor:
     def __str__(self):
         return str(self._array)
 
-    def __getitem__(self, x):
-        return astensor(self._array[x])
-
     def backward(self, zero_grad=True):
         r"""
         Backpropagation Method. If it is called on a size 1 tensor L, then the gradient for each tensor X which
@@ -239,7 +236,7 @@ class Tensor:
 
             elif appended:
                 # >=2D Tensor @ 1D Tensor
-                op_axes = _broadcasted_axes(self[..., 0, 0], np.array(0))
+                op_axes = _broadcasted_axes(self._array[..., 0, 0], np.array(0))
 
                 def _backward():
                     self.grad += (res.grad[..., None] @ other._array[:, None].T).sum(
@@ -253,7 +250,7 @@ class Tensor:
 
             else:
                 # >2D Tensor @ >2D Tensor
-                op_axes = _broadcasted_axes(self[..., 0, 0], other[..., 0, 0])
+                op_axes = _broadcasted_axes(self._array[..., 0, 0], other[..., 0, 0])
 
                 def _backward():
                     self.grad += (res.grad @ other._array.swapaxes(-1, -2)).sum(
@@ -375,6 +372,33 @@ class Tensor:
     min
     std
     """
+
+    def __getitem__(self, index):
+        """
+        Index an array, using `numpy's indexing semantics <https://numpy.org/doc/stable/user/basics.indexing.html>`_
+
+        Parameters
+        ----------
+        index : Iterable or scalar index
+            index used to index the tensor
+
+        Returns
+        -------
+        Tensor
+            Result of Tensor indexing
+        """
+        res = astensor(self._array[index])  # Copy will be made of underlying np array
+        res._op = Op.INDEX
+        res._children = [self]
+
+        def _backward():
+            np.add.at(self.grad, index, res.grad)
+
+        res._backward = _backward
+        return res
+
+    def __setitem__(self, index, values):
+        self._array[index] = values
 
     def __neg__(self):
         return self * -1

@@ -18,35 +18,37 @@ class Op(IntEnum):
     """Apply exponential function element wise"""
     EXPAND_DIMS = 4
     """Expand a tensor's with size-1 axes"""
-    LOG = 5
+    INDEX = 5
+    """Index an array"""
+    LOG = 6
     """Apply natural logarithm element wise"""
-    MATMUL = 6
+    MATMUL = 7
     """Matrix Multiplication of two tensors"""
-    MAX = 7
+    MAX = 8
     """Max over a tensor"""
-    MEAN = 8
+    MEAN = 9
     """Mean over a tensor"""
-    MIN = 9
+    MIN = 10
     """Min over a tensor"""
-    MUL = 10
+    MUL = 11
     """Multiplication of two tensors"""
-    NONE = 11
+    NONE = 12
     """No operation, default _op value of a Tensor."""
-    POW = 12
+    POW = 13
     """Tensor raised to a power of another tensor"""
-    RELU = 13
+    RELU = 14
     """Apply ReLU function element wise"""
-    RESHAPE = 14
+    RESHAPE = 15
     """Reshape a tensor"""
-    SQUEEZE = 15
+    SQUEEZE = 16
     """Squeeze a tensor's size 1 dimensions"""
-    STD = 16
+    STD = 17
     """Standard Deviation over a tensor"""
-    SUB = 17
+    SUB = 18
     """Subtraction of two tensors"""
-    SUM = 18
+    SUM = 19
     """Sum over a tensor"""
-    T = 19
+    T = 20
     """Transpose a tensor"""
 
     def __str__(self):
@@ -77,4 +79,5 @@ str_dict = {
     Op.MAX: "max",
     Op.MIN: "min",
     Op.STD: "std",
+    Op.INDEX: "index",
 }
