@@ -26,3 +26,6 @@ Homepage = "https://vikramrangarajan.github.io/SimpleTensor/"
 Issues = "https://github.com/VikramRangarajan/SimpleTensor/issues"
 Documentation = "https://vikramrangarajan.github.io/SimpleTensor/docs.html"
 Repository = "https://github.com/VikramRangarajan/SimpleTensor"
+
+[project.scripts]
+simpletensor-train-mnist = "simpletensor.mnist_train:main"

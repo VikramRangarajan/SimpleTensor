@@ -12,6 +12,7 @@ Welcome to SimpleTensor's documentation!
 
    docs
    about
+   demo
 
 
 

@@ -75,11 +75,19 @@ html_theme_options = {
         "text": "SimpleTensor",
     },
     "navigation_depth": -1,
+    "icon_links": [
+        {
+            "name": "UMD CS",
+            "url": "https://www.cs.umd.edu/",
+            "icon": "https://umd-brand.transforms.svdcdn.com/production/uploads/images/logos-formal-seal.jpg?w=1801&h=1801&auto=compress%2Cformat&fit=crop&dm=1651267392&s=81a14f930f7888983f0f8bc10146c0b2",
+            "type": "url",
+        },
+    ],
 }
 html_static_path = []
 
 autodoc_default_options = {
-    "special-members": "__add__, __sub__, __mul__, __truediv__, __pow__, __matmul__, __getitem__",
+    "special-members": "__add__, __sub__, __mul__, __truediv__, __pow__, __matmul__, __getitem__, __enter__, __exit__",
 }
 numpydoc_show_class_members = False
 autosummary_generate = True

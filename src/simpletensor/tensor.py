@@ -1,49 +1,73 @@
 from . import USE_GPU
 import numpy as np
 from .operation import Op
-import uuid
 from importlib import import_module
 
 if USE_GPU:
     np = import_module("cupy")
+    scipy = import_module("cupyx.scipy")
 else:
     import numpy as np
+    import scipy
+
+fftconvolve = scipy.signal.fftconvolve
 
 
 class Tensor:
     """
     Tensor class. This is a box around a numpy array, but with support for reverse mode automatic differentiation.
 
-    Raises
-    ------
-    NotImplementedError
-        For invalid operations, or if Tensor.backward() is called on Tensor whose size is not 1.
+    Parameters
+    ----------
+    values : array-like or scalar
+        Values to put into Tensor
+    dtype : data type, optional
+        numpy data type for underlying numpy array, by default None
+    name : str, optional
+        Name of tensor. If not specified, or if name is taken, a random 10-letter name is given, by default None
     """
 
-    taken_names = {None}
+    grad_enabled = True
 
-    def __init__(self, values, dtype=None, name=None):
+    def __init__(self, values, dtype=None, copy=True, name=None):
         dtype = dtype or np.float64
-        self._array = np.array(values, dtype=dtype)
+        self._array = np.array(values, dtype=dtype, copy=copy)
 
         # Gives tensor unique name
-        if (name is not None and name in Tensor.taken_names) or name is None:
-            n = None
-            while n in Tensor.taken_names:
-                n = uuid.uuid1().hex.replace("-", "")
-            self.name = n
+        if name is None:
+            self.name = "".join(
+                [
+                    np.random.choice(
+                        list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                    )
+                    for _ in range(10)
+                ]
+            )
+        else:
+            self.name = name
 
-        # Numpy ndarray attributes
-        self.shape = self._array.shape
-        self.ndim = self._array.ndim
-        self.dtype = self._array.dtype
-        self.size = self._array.size
-        self.grad = np.zeros_like(self._array)
+        if Tensor.grad_enabled:
+            self.zero_grad()
 
         self._op = Op.NONE
-        self._children = []
-        self._grad_params = dict()
+        self._parents = []
         self._backward = lambda: None
+
+    @property
+    def shape(self):
+        return self._array.shape
+
+    @property
+    def ndim(self):
+        return self._array.ndim
+
+    @property
+    def dtype(self):
+        return self._array.dtype
+
+    @property
+    def size(self):
+        return self._array.size
 
     def __repr__(self):
         return (
@@ -80,17 +104,24 @@ class Tensor:
         def topological_sort(v):
             if v not in visited:
                 visited.add(v)
-                for child in v._children:
-                    topological_sort(child)
+                for parent in v._parents:
+                    topological_sort(parent)
                 topo_sorted_nodes.append(v)
 
         topological_sort(self)
         if zero_grad:
             for node in topo_sorted_nodes:
-                node.grad = np.zeros_like(node.grad, dtype=node.dtype)
+                node.zero_grad()
         self.grad = np.ones_like(self._array, dtype=self.dtype)
         for node in topo_sorted_nodes[::-1]:
             node._backward()
+
+    def zero_grad(self):
+        """
+        Sets the gradient of the tensor to a 0 array with the same
+        shape as the tensor.
+        """
+        self.grad = np.zeros_like(self._array, dtype=self.dtype)
 
     """
     BINARY OPERATIONS
@@ -114,15 +145,16 @@ class Tensor:
         """
         other = astensor(other)
         res = Tensor(self._array + other._array)
-        res._op = Op.ADD
-        res._children = [self, other]
-        op_axes = _broadcasted_axes(self, other)
+        if Tensor.grad_enabled:
+            res._op = Op.ADD
+            res._parents = [self, other]
+            op_axes = _broadcasted_axes(self, other)
 
-        def _backward():
-            self.grad += np.sum(res.grad, axis=op_axes[0])
-            other.grad += np.sum(res.grad, axis=op_axes[1])
+            def _backward():
+                self.grad += np.sum(res.grad, axis=op_axes[0])
+                other.grad += np.sum(res.grad, axis=op_axes[1])
 
-        res._backward = _backward
+            res._backward = _backward
         return res
 
     __radd__ = __add__
@@ -139,15 +171,16 @@ class Tensor:
         """
         other = astensor(other)
         res = Tensor(self._array - other._array)
-        res._op = Op.SUB
-        res._children = [self, other]
-        op_axes = _broadcasted_axes(self, other)
+        if Tensor.grad_enabled:
+            res._op = Op.SUB
+            res._parents = [self, other]
+            op_axes = _broadcasted_axes(self, other)
 
-        def _backward():
-            self.grad += np.sum(res.grad, axis=op_axes[0])
-            other.grad -= np.sum(res.grad, axis=op_axes[1])
+            def _backward():
+                self.grad += np.sum(res.grad, axis=op_axes[0])
+                other.grad -= np.sum(res.grad, axis=op_axes[1])
 
-        res._backward = _backward
+            res._backward = _backward
         return res
 
     def __rsub__(self, other):
@@ -166,15 +199,16 @@ class Tensor:
         """
         other = astensor(other)
         res = Tensor(self._array * other._array)
-        res._op = Op.MUL
-        res._children = [self, other]
-        op_axes = _broadcasted_axes(self, other)
+        if Tensor.grad_enabled:
+            res._op = Op.MUL
+            res._parents = [self, other]
+            op_axes = _broadcasted_axes(self, other)
 
-        def _backward():
-            self.grad += np.sum(res.grad * other._array, axis=op_axes[0])
-            other.grad += np.sum(res.grad * self._array, axis=op_axes[1])
+            def _backward():
+                self.grad += np.sum(res.grad * other._array, axis=op_axes[0])
+                other.grad += np.sum(res.grad * self._array, axis=op_axes[1])
 
-        res._backward = _backward
+            res._backward = _backward
         return res
 
     __imul__ = __mul__
@@ -210,57 +244,60 @@ class Tensor:
             return (self * other).sum()
 
         res = Tensor(self._array @ other._array)
-        res._op = Op.MATMUL
-        res._children = [self, other]
+        if Tensor.grad_enabled:
+            res._op = Op.MATMUL
+            res._parents = [self, other]
 
-        if self.ndim == other.ndim == 2:
-            # 2D Tensor @ 2D Tensor
-
-            def _backward():
-                self.grad += res.grad @ other._array.T
-                other.grad += self._array.T @ res.grad
-        else:
-            if prepended:
-                # 1D Tensor @ >=2D Tensor
-                op_axes = _broadcasted_axes(np.array(0), other[..., 0, 0])
+            if self.ndim == other.ndim == 2:
+                # 2D Tensor @ 2D Tensor
 
                 def _backward():
-                    self.grad += (
-                        (res.grad[..., None, :] @ other._array.swapaxes(-1, -2))
-                        .sum(op_axes[0])
-                        .squeeze(-2)
-                    )
-                    other.grad += (self._array[:, None] @ res.grad[..., None, :]).sum(
-                        op_axes[1]
-                    )
-
-            elif appended:
-                # >=2D Tensor @ 1D Tensor
-                op_axes = _broadcasted_axes(self._array[..., 0, 0], np.array(0))
-
-                def _backward():
-                    self.grad += (res.grad[..., None] @ other._array[:, None].T).sum(
-                        op_axes[0]
-                    )
-                    other.grad += (
-                        (self._array.swapaxes(-1, -2) @ res.grad[..., None])
-                        .sum(op_axes[1])
-                        .squeeze(-1)
-                    )
-
+                    self.grad += res.grad @ other._array.T
+                    other.grad += self._array.T @ res.grad
             else:
-                # >2D Tensor @ >2D Tensor
-                op_axes = _broadcasted_axes(self._array[..., 0, 0], other[..., 0, 0])
+                if prepended:
+                    # 1D Tensor @ >=2D Tensor
+                    op_axes = _broadcasted_axes(np.array(0), other[..., 0, 0])
 
-                def _backward():
-                    self.grad += (res.grad @ other._array.swapaxes(-1, -2)).sum(
-                        op_axes[0]
-                    )
-                    other.grad += (self._array.swapaxes(-1, -2) @ res.grad).sum(
-                        op_axes[1]
+                    def _backward():
+                        self.grad += (
+                            (res.grad[..., None, :] @ other._array.swapaxes(-1, -2))
+                            .sum(op_axes[0])
+                            .squeeze(-2)
+                        )
+                        other.grad += (
+                            self._array[:, None] @ res.grad[..., None, :]
+                        ).sum(op_axes[1])
+
+                elif appended:
+                    # >=2D Tensor @ 1D Tensor
+                    op_axes = _broadcasted_axes(self._array[..., 0, 0], np.array(0))
+
+                    def _backward():
+                        self.grad += (
+                            res.grad[..., None] @ other._array[:, None].T
+                        ).sum(op_axes[0])
+                        other.grad += (
+                            (self._array.swapaxes(-1, -2) @ res.grad[..., None])
+                            .sum(op_axes[1])
+                            .squeeze(-1)
+                        )
+
+                else:
+                    # >2D Tensor @ >2D Tensor
+                    op_axes = _broadcasted_axes(
+                        self._array[..., 0, 0], other[..., 0, 0]
                     )
 
-        res._backward = _backward
+                    def _backward():
+                        self.grad += (res.grad @ other._array.swapaxes(-1, -2)).sum(
+                            op_axes[0]
+                        )
+                        other.grad += (self._array.swapaxes(-1, -2) @ res.grad).sum(
+                            op_axes[1]
+                        )
+
+            res._backward = _backward
         return res
 
     def __rmatmul__(self, other):
@@ -285,21 +322,22 @@ class Tensor:
         """
         other = astensor(other)
         res = Tensor(self._array**other._array)
-        res._op = Op.POW
-        res._children = [self, other]
-        op_axes = _broadcasted_axes(self, other)
+        if Tensor.grad_enabled:
+            res._op = Op.POW
+            res._parents = [self, other]
+            op_axes = _broadcasted_axes(self, other)
 
-        def _backward():
-            self.grad += np.sum(
-                res.grad * other._array * self._array ** (other._array - 1),
-                axis=op_axes[0],
-            )
-            other.grad += np.sum(
-                res.grad * self._array**other._array * np.log(self._array),
-                axis=op_axes[1],
-            )
+            def _backward():
+                self.grad += np.sum(
+                    res.grad * other._array * self._array ** (other._array - 1),
+                    axis=op_axes[0],
+                )
+                other.grad += np.sum(
+                    res.grad * res._array * np.log(self._array),
+                    axis=op_axes[1],
+                )
 
-        res._backward = _backward
+            res._backward = _backward
         return res
 
     def __rpow__(self, other):
@@ -331,26 +369,10 @@ class Tensor:
     __itruediv__ = __truediv__
 
     """
-    TODO: Binary Magic Functions
-    __mul__: Done
-    __imul__: Testing
-    __rmul__: Testing
-    __matmul__: Done
-    __rmatmul__: Done
-    __imatmul__: Done
-    __truediv__
-    __rtruediv__
-    __itruediv__
-    __pow__
-    __rpow__
-    __ipow__
 
     Optional:
     __abs__
     __float__, __int__, __complex__
-    __floordiv_
-    __rfloordiv__
-    __ifloordiv__
     """
 
     """
@@ -361,6 +383,7 @@ class Tensor:
     exp
     transpose
     squeeze
+    flip
     expand_dims
     reshape
     relu
@@ -370,7 +393,6 @@ class Tensor:
     inverse trig functions
     max
     min
-    std
     """
 
     def __getitem__(self, index):
@@ -388,13 +410,14 @@ class Tensor:
             Result of Tensor indexing
         """
         res = astensor(self._array[index])  # Copy will be made of underlying np array
-        res._op = Op.INDEX
-        res._children = [self]
+        if Tensor.grad_enabled:
+            res._op = Op.INDEX
+            res._parents = [self]
 
-        def _backward():
-            np.add.at(self.grad, index, res.grad)
+            def _backward():
+                np.add.at(self.grad, index, res.grad)
 
-        res._backward = _backward
+            res._backward = _backward
         return res
 
     def __setitem__(self, index, values):
@@ -421,16 +444,17 @@ class Tensor:
             Result of sum operation over axes
         """
         res = Tensor(self._array.sum(axis=axis))
-        res._op = Op.SUM
-        res._children = [self]
+        if Tensor.grad_enabled:
+            res._op = Op.SUM
+            res._parents = [self]
 
-        def _backward():
-            notnullaxis: tuple = axis or tuple(range(self.ndim - 1))
-            self.grad += np.broadcast_to(
-                np.expand_dims(res.grad, notnullaxis), self.shape
-            )
+            def _backward():
+                notnullaxis: tuple = axis or tuple(range(self.ndim - 1))
+                self.grad += np.broadcast_to(
+                    np.expand_dims(res.grad, notnullaxis), self.shape
+                )
 
-        res._backward = _backward
+            res._backward = _backward
         return res
 
     def mean(self, axis=None):
@@ -463,6 +487,11 @@ class Tensor:
         ddof : int, optional
             Delta degrees of freedom, where the divisor is N - ddof.
             ddof = 1 will give you sample std. By default, ddof = 0
+
+        Returns
+        -------
+        Tensor
+            Standard deviation of input tensor along axes
         """
         df = float(self.size - ddof)
         if axis is not None:
@@ -480,11 +509,39 @@ class Tensor:
         ddof : int, optional
             Delta degrees of freedom, where the divisor is N - ddof.
             ddof = 1 will give you sample std. By default, ddof = 0
+
+        Returns
+        -------
+        Tensor
+            Variance of input tensor along axes
         """
         df = float(self.size - ddof)
         if axis is not None:
             df = float(np.prod([self.shape[i] for i in axis]) - ddof)
         return ((self - self.mean(axis)) ** 2).sum(axis) / df
+
+    def max(self, axis=None):
+        """
+        Max over given axes.
+
+        Parameters
+        ----------
+        axis : tuple, optional
+            Axes over which to perform max over, by default None
+        """
+        all_axes = np.arange(self.ndim)
+        axis = axis or all_axes
+        axis = tuple(axis)
+        other_axes = tuple(np.setdiff1d(all_axes, axis))
+        other_shape = tuple(self.shape[i] for i in other_axes)
+        other_size = np.prod(other_shape, dtype="int")
+        res = self.transpose(axis + other_axes)
+        res = res.reshape((-1, other_size))
+        argmax = res._array.argmax(0)
+        res = res[argmax, np.arange(other_size)]
+        res = res.reshape(other_shape)
+
+        return res
 
 
 def astensor(a, dtype=None):

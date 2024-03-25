@@ -14,3 +14,5 @@ else:
 
 from .tensor import *
 from .operation import *
+from .grad_manager import *
+from .functions import *
