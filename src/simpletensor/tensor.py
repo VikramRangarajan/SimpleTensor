@@ -420,7 +420,7 @@ class Tensor:
         Element-wise log base n function
         
         Parameters
-        ---------
+        ----------
         n : float
             log base
 
@@ -446,7 +446,7 @@ class Tensor:
         Transpose function
         
         Parameters
-        ---------
+        ----------
         axis : tuple of ints
             Order of transpose
 
@@ -473,7 +473,7 @@ class Tensor:
         Squeeze function
         
         Parameters
-        ---------
+        ----------
         axis : tuple of ints
             Axes to squeeze
 
@@ -500,7 +500,7 @@ class Tensor:
         Flip function
         
         Parameters
-        ---------
+        ----------
         axis : tuple of ints
             Axes to flip
 
@@ -527,7 +527,7 @@ class Tensor:
         Expand dimensions function
         
         Parameters
-        ---------
+        ----------
         axis : tuple of ints
             Axes to expand
 
@@ -554,7 +554,7 @@ class Tensor:
         Reshape function
         
         Parameters
-        ---------
+        ----------
         shape : tuple of ints
             New shape for tensor
 
@@ -603,7 +603,7 @@ class Tensor:
         Index an array, using `numpy's indexing semantics <https://numpy.org/doc/stable/user/basics.indexing.html>`_
 
         Parameters
-        ---------
+        ----------
         index : Iterable or scalar index
             index used to index the tensor
 
