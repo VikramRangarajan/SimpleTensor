@@ -68,6 +68,10 @@ class Tensor:
     @property
     def size(self):
         return self._array.size
+    
+    @property
+    def T(self):
+        return self.transpose()
 
     def __repr__(self):
         return (
@@ -413,12 +417,12 @@ class Tensor:
                 self.grad += res.grad * res._array
 
             res._backward = _backward
-        return res 
+        return res
 
-    def logn(self, n = np.e):
+    def logn(self, n=np.e):
         """
         Element-wise log base n function
-        
+
         Parameters
         ----------
         n : float
@@ -430,21 +434,21 @@ class Tensor:
             Result of log operation
         """
 
-        res = astensor(np.log(self._array)/np.log(n))
+        res = astensor(np.log(self._array) / np.log(n))
         if Tensor.grad_enabled:
             res._op = Op.LOG
             res._parents = [self]
 
             def _backward():
-                self.grad += res.grad/(np.log(n) * self._array)
+                self.grad += res.grad / (np.log(n) * self._array)
 
             res._backward = _backward
-        return res 
+        return res
 
     def transpose(self, axis=None):
         """
         Transpose function
-        
+
         Parameters
         ----------
         axis : tuple of ints
@@ -455,9 +459,9 @@ class Tensor:
         Tensor
             Result of transpose
         """
-        
+
         axis = axis or range(self.ndim - 1, -1, -1)
-        res = astensor(np.transpose(self._array, axis=axis))
+        res = astensor(np.transpose(self._array, axes=axis))
         if Tensor.grad_enabled:
             res._op = Op.T
             res._parents = [self]
@@ -466,12 +470,12 @@ class Tensor:
                 self.grad += np.transpose(res.grad, np.argsort(axis))
 
             res._backward = _backward
-        return res 
-    
+        return res
+
     def squeeze(self, axis=None):
         """
         Squeeze function
-        
+
         Parameters
         ----------
         axis : tuple of ints
@@ -483,7 +487,7 @@ class Tensor:
             Result of squeeze
         """
 
-        axis = axis or [i for i, _ in enumerate(self._array.shape)]
+        axis = axis or tuple(i for i, dim in enumerate(self._array.shape) if dim == 1)
         res = astensor(np.squeeze(self._array, axis=axis))
         if Tensor.grad_enabled:
             res._op = Op.SQUEEZE
@@ -498,7 +502,7 @@ class Tensor:
     def flip(self, axis=None):
         """
         Flip function
-        
+
         Parameters
         ----------
         axis : tuple of ints
@@ -511,7 +515,7 @@ class Tensor:
         """
 
         axis = axis or (range(self.ndim))
-        res = astensor(np.squeeze(self._array, axis=axis))
+        res = astensor(np.flip(self._array, axis=axis))
         if Tensor.grad_enabled:
             res._op = Op.FLIP
             res._parents = [self]
@@ -521,11 +525,11 @@ class Tensor:
 
             res._backward = _backward
         return res
-    
+
     def expand_dims(self, axis=None):
         """
         Expand dimensions function
-        
+
         Parameters
         ----------
         axis : tuple of ints
@@ -537,7 +541,7 @@ class Tensor:
             Result of expansion
         """
 
-        axis = axis or [i for i, _ in enumerate(self._array.shape)]
+        axis = axis or ()
         res = astensor(np.expand_dims(self._array, axis=axis))
         if Tensor.grad_enabled:
             res._op = Op.EXPAND_DIMS
@@ -548,11 +552,11 @@ class Tensor:
 
             res._backward = _backward
         return res
-    
+
     def reshape(self, shape):
         """
         Reshape function
-        
+
         Parameters
         ----------
         shape : tuple of ints
@@ -574,7 +578,7 @@ class Tensor:
 
             res._backward = _backward
         return res
-    
+
     def relu(self):
         """
         Element-wise relu function
@@ -596,7 +600,7 @@ class Tensor:
                 self.grad += res.grad * np.heaviside(res._array, 0)
 
             res._backward = _backward
-        return res 
+        return res
 
     def __getitem__(self, index):
         """
