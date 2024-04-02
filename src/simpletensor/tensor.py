@@ -395,12 +395,215 @@ class Tensor:
     min
     """
 
+    def exp(self):
+        """
+        Element-wise exponential function
+
+        Returns
+        -------
+        Tensor
+            Result of exponentiation
+        """
+        res = astensor(np.exp(self._array))
+        if Tensor.grad_enabled:
+            res._op = Op.EXP
+            res._parents = [self]
+
+            def _backward():
+                self.grad += res.grad * res._array
+
+            res._backward = _backward
+        return res 
+
+    def logn(self, n = np.e):
+        """
+        Element-wise log base n function
+        
+        Parameters
+        ---------
+        n : float
+            log base
+
+        Returns
+        -------
+        Tensor
+            Result of log operation
+        """
+
+        res = astensor(np.log(self._array)/np.log(n))
+        if Tensor.grad_enabled:
+            res._op = Op.LOG
+            res._parents = [self]
+
+            def _backward():
+                self.grad += res.grad/(np.log(n) * self._array)
+
+            res._backward = _backward
+        return res 
+
+    def transpose(self, axis=None):
+        """
+        Transpose function
+        
+        Parameters
+        ---------
+        axis : tuple of ints
+            Order of transpose
+
+        Returns
+        -------
+        Tensor
+            Result of transpose
+        """
+        
+        axis = axis or range(self.ndim - 1, -1, -1)
+        res = astensor(np.transpose(self._array, axis=axis))
+        if Tensor.grad_enabled:
+            res._op = Op.T
+            res._parents = [self]
+
+            def _backward():
+                self.grad += np.transpose(res.grad, np.argsort(axis))
+
+            res._backward = _backward
+        return res 
+    
+    def squeeze(self, axis=None):
+        """
+        Squeeze function
+        
+        Parameters
+        ---------
+        axis : tuple of ints
+            Axes to squeeze
+
+        Returns
+        -------
+        Tensor
+            Result of squeeze
+        """
+
+        axis = axis or [i for i, _ in enumerate(self._array.shape)]
+        res = astensor(np.squeeze(self._array, axis=axis))
+        if Tensor.grad_enabled:
+            res._op = Op.SQUEEZE
+            res._parents = [self]
+
+            def _backward():
+                self.grad += np.expand_dims(res.grad, axis=axis)
+
+            res._backward = _backward
+        return res
+
+    def flip(self, axis=None):
+        """
+        Flip function
+        
+        Parameters
+        ---------
+        axis : tuple of ints
+            Axes to flip
+
+        Returns
+        -------
+        Tensor
+            Result of flip
+        """
+
+        axis = axis or (range(self.ndim))
+        res = astensor(np.squeeze(self._array, axis=axis))
+        if Tensor.grad_enabled:
+            res._op = Op.FLIP
+            res._parents = [self]
+
+            def _backward():
+                self.grad += np.flip(res.grad, axis=axis)
+
+            res._backward = _backward
+        return res
+    
+    def expand_dims(self, axis=None):
+        """
+        Expand dimensions function
+        
+        Parameters
+        ---------
+        axis : tuple of ints
+            Axes to expand
+
+        Returns
+        -------
+        Tensor
+            Result of expansion
+        """
+
+        axis = axis or [i for i, _ in enumerate(self._array.shape)]
+        res = astensor(np.expand_dims(self._array, axis=axis))
+        if Tensor.grad_enabled:
+            res._op = Op.EXPAND_DIMS
+            res._parents = [self]
+
+            def _backward():
+                self.grad += np.squeeze(res.grad, axis=axis)
+
+            res._backward = _backward
+        return res
+    
+    def reshape(self, shape):
+        """
+        Reshape function
+        
+        Parameters
+        ---------
+        shape : tuple of ints
+            New shape for tensor
+
+        Returns
+        -------
+        Tensor
+            Result of reshape
+        """
+
+        res = astensor(np.reshape(self._array, shape))
+        if Tensor.grad_enabled:
+            res._op = Op.RESHAPE
+            res._parents = [self]
+
+            def _backward():
+                self.grad += np.reshape(res.grad, self.shape)
+
+            res._backward = _backward
+        return res
+    
+    def relu(self):
+        """
+        Element-wise relu function
+
+        Returns
+        -------
+        Tensor
+            Result of relu
+        """
+
+        res_array = np.array(self._array)
+        res_array[res_array < 0] = 0
+        res = astensor(res_array)
+        if Tensor.grad_enabled:
+            res._op = Op.RELU
+            res._parents = [self]
+
+            def _backward():
+                self.grad += res.grad * np.heaviside(res._array, 0)
+
+            res._backward = _backward
+        return res 
+
     def __getitem__(self, index):
         """
         Index an array, using `numpy's indexing semantics <https://numpy.org/doc/stable/user/basics.indexing.html>`_
 
         Parameters
-        ----------
+        ---------
         index : Iterable or scalar index
             index used to index the tensor
 
