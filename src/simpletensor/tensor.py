@@ -1,16 +1,5 @@
-from . import USE_GPU
-import numpy as np
 from .operation import Op
-from importlib import import_module
-
-if USE_GPU:
-    np = import_module("cupy")
-    scipy = import_module("cupyx.scipy")
-else:
-    import numpy as np
-    import scipy
-
-fftconvolve = scipy.signal.fftconvolve
+from simpletensor import np
 
 
 class Tensor:
@@ -152,11 +141,15 @@ class Tensor:
         if Tensor.grad_enabled:
             res._op = Op.ADD
             res._parents = [self, other]
-            op_axes = _broadcasted_axes(self, other)
+            op_axes = _broadcasted_axes(self.shape, other.shape)
 
             def _backward():
-                self.grad += np.sum(res.grad, axis=op_axes[0])
-                other.grad += np.sum(res.grad, axis=op_axes[1])
+                self.grad += np.sum(res.grad, axis=op_axes[0][1], keepdims=True).sum(
+                    op_axes[0][0]
+                )
+                other.grad += np.sum(res.grad, axis=op_axes[1][1], keepdims=True).sum(
+                    op_axes[1][0]
+                )
 
             res._backward = _backward
         return res
@@ -178,11 +171,15 @@ class Tensor:
         if Tensor.grad_enabled:
             res._op = Op.SUB
             res._parents = [self, other]
-            op_axes = _broadcasted_axes(self, other)
+            op_axes = _broadcasted_axes(self.shape, other.shape)
 
             def _backward():
-                self.grad += np.sum(res.grad, axis=op_axes[0])
-                other.grad -= np.sum(res.grad, axis=op_axes[1])
+                self.grad += np.sum(res.grad, axis=op_axes[0][1], keepdims=True).sum(
+                    op_axes[0][0]
+                )
+                other.grad -= np.sum(res.grad, axis=op_axes[1][1], keepdims=True).sum(
+                    op_axes[1][0]
+                )
 
             res._backward = _backward
         return res
@@ -206,11 +203,15 @@ class Tensor:
         if Tensor.grad_enabled:
             res._op = Op.MUL
             res._parents = [self, other]
-            op_axes = _broadcasted_axes(self, other)
+            op_axes = _broadcasted_axes(self.shape, other.shape)
 
             def _backward():
-                self.grad += np.sum(res.grad * other._array, axis=op_axes[0])
-                other.grad += np.sum(res.grad * self._array, axis=op_axes[1])
+                self.grad += np.sum(
+                    res.grad * other._array, axis=op_axes[0][1], keepdims=True
+                ).sum(op_axes[0][0])
+                other.grad += np.sum(
+                    res.grad * self._array, axis=op_axes[1][1], keepdims=True
+                ).sum(op_axes[1][0])
 
             res._backward = _backward
         return res
@@ -261,44 +262,38 @@ class Tensor:
             else:
                 if prepended:
                     # 1D Tensor @ >=2D Tensor
-                    op_axes = _broadcasted_axes(np.array(0), other[..., 0, 0])
+                    op_axes = _broadcasted_axes((), other.shape[:-2])
 
                     def _backward():
                         self.grad += (
                             (res.grad[..., None, :] @ other._array.swapaxes(-1, -2))
-                            .sum(op_axes[0])
+                            .sum(op_axes[0][0])
                             .squeeze(-2)
                         )
-                        other.grad += (
-                            self._array[:, None] @ res.grad[..., None, :]
-                        ).sum(op_axes[1])
+                        other.grad += self._array[:, None] @ res.grad[..., None, :]
 
                 elif appended:
                     # >=2D Tensor @ 1D Tensor
-                    op_axes = _broadcasted_axes(self._array[..., 0, 0], np.array(0))
+                    op_axes = _broadcasted_axes(self.shape[:-2], ())
 
                     def _backward():
-                        self.grad += (
-                            res.grad[..., None] @ other._array[:, None].T
-                        ).sum(op_axes[0])
+                        self.grad += res.grad[..., None] @ other._array[:, None].T
                         other.grad += (
                             (self._array.swapaxes(-1, -2) @ res.grad[..., None])
-                            .sum(op_axes[1])
+                            .sum(op_axes[1][0])
                             .squeeze(-1)
                         )
 
                 else:
                     # >2D Tensor @ >2D Tensor
-                    op_axes = _broadcasted_axes(
-                        self._array[..., 0, 0], other[..., 0, 0]
-                    )
+                    op_axes = _broadcasted_axes(self.shape[:-2], other.shape[:-2])
 
                     def _backward():
                         self.grad += (res.grad @ other._array.swapaxes(-1, -2)).sum(
-                            op_axes[0]
+                            op_axes[0][0] + op_axes[0][1]
                         )
                         other.grad += (self._array.swapaxes(-1, -2) @ res.grad).sum(
-                            op_axes[1]
+                            op_axes[1][0] + op_axes[1][1]
                         )
 
             res._backward = _backward
@@ -329,17 +324,19 @@ class Tensor:
         if Tensor.grad_enabled:
             res._op = Op.POW
             res._parents = [self, other]
-            op_axes = _broadcasted_axes(self, other)
+            op_axes = _broadcasted_axes(self.shape, other.shape)
 
             def _backward():
                 self.grad += np.sum(
-                    res.grad * other._array * self._array ** (other._array - 1),
-                    axis=op_axes[0],
-                )
+                    res.grad * other._array * self._array ** (other._array - 1.0),
+                    axis=op_axes[0][1],
+                    keepdims=True,
+                ).sum(op_axes[0][0])
                 other.grad += np.sum(
                     res.grad * res._array * np.log(self._array),
-                    axis=op_axes[1],
-                )
+                    axis=op_axes[1][1],
+                    keepdims=True,
+                ).sum(op_axes[1][0])
 
             res._backward = _backward
         return res
@@ -365,10 +362,10 @@ class Tensor:
         Tensor
             Result tensor of A / B
         """
-        return self * other**-1
+        return self * other**-1.0
 
     def __rtruediv__(self, other):
-        return self**-1 * other
+        return self**-1.0 * other
 
     __itruediv__ = __truediv__
 
@@ -631,7 +628,7 @@ class Tensor:
         self._array[index] = values
 
     def __neg__(self):
-        return self * -1
+        return self * -1.0
 
     def __pos__(self):
         return self
@@ -659,7 +656,7 @@ class Tensor:
                 if keepdims:
                     self.grad += res.grad
                 else:
-                    notnullaxis: tuple = axis or tuple(range(self.ndim - 1))
+                    notnullaxis: tuple = axis or tuple(range(self.ndim))
                     self.grad += np.expand_dims(res.grad, notnullaxis)
 
             res._backward = _backward
@@ -705,7 +702,7 @@ class Tensor:
         if axis is not None:
             df = float(np.prod([self.shape[i] for i in axis]) - ddof)
         return (
-            ((self - self.mean(axis, keepdims=keepdims)) ** 2).sum(
+            ((self - self.mean(axis, keepdims=keepdims)) ** 2.0).sum(
                 axis, keepdims=keepdims
             )
             / df
@@ -731,7 +728,7 @@ class Tensor:
         df = float(self.size - ddof)
         if axis is not None:
             df = float(np.prod([self.shape[i] for i in axis]) - ddof)
-        return ((self - self.mean(axis, keepdims=keepdims)) ** 2).sum(
+        return ((self - self.mean(axis, keepdims=keepdims)) ** 2.0).sum(
             axis, keepdims=keepdims
         ) / df
 
@@ -808,18 +805,18 @@ def astensor(a, dtype=None):
         return Tensor(a, dtype)
 
 
-def _padded_broadcast_shapes(*a, max_ndim=None):
-    return [(0,) * (max_ndim - arr.ndim) + arr.shape for arr in a]
+def _padded_broadcast_shapes(*shapes, max_ndim=None):
+    return [(0,) * (max_ndim - len(shape)) + shape for shape in shapes]
 
 
-def _broadcasted_axes(*a):
-    res_shape = np.broadcast_shapes(*(arr.shape for arr in a))
-    arr_pshapes = _padded_broadcast_shapes(*a, max_ndim=len(res_shape))
-    axes = [() for _ in a]
+def _broadcasted_axes(*shapes):
+    res_shape = np.broadcast_shapes(*shapes)
+    arr_pshapes = _padded_broadcast_shapes(*shapes, max_ndim=len(res_shape))
+    axes = [[(), ()] for _ in shapes]
     for axis in range(0, len(res_shape)):
-        for arr_num in range(len(a)):
-            if arr_pshapes[arr_num][axis] == 0 or (
-                arr_pshapes[arr_num][axis] == 1 and res_shape[axis] != 1
-            ):
-                axes[arr_num] = axes[arr_num] + (axis,)
+        for arr_num in range(len(shapes)):
+            if arr_pshapes[arr_num][axis] == 0:
+                axes[arr_num][0] = axes[arr_num][0] + (axis,)
+            elif arr_pshapes[arr_num][axis] == 1 and res_shape[axis] != 1:
+                axes[arr_num][1] = axes[arr_num][1] + (axis,)
     return axes

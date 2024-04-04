@@ -1,5 +1,4 @@
-from simpletensor import Tensor, softmax
-import numpy as np
+from simpletensor import Tensor, softmax, categorical_cross_entropy, np
 from urllib.request import urlretrieve
 import os
 import importlib
@@ -38,7 +37,7 @@ def parse_args():
     parser.add_argument(
         "--lr",
         type=float,
-        default=0.001,
+        default=0.01,
         help="learning rate of optimizer",
     )
     parser.add_argument(
@@ -103,10 +102,10 @@ def load_data(location):
     """
     data = np.load(location)
     return (
-        data["x_train"].reshape((-1, 784)) / 255.0,
+        data["x_train"].reshape((-1, 784)).astype("float32") / 255.0,
         data["y_train"],
     ), (
-        data["x_test"].reshape((-1, 784)) / 255.0,
+        data["x_test"].reshape((-1, 784)).astype("float32") / 255.0,
         data["y_test"],
     )
 
@@ -120,14 +119,20 @@ def main():
     data_loc = os.path.join(PATH, "mnist.npz")
 
     download_mnist(data_loc)
-    (x_train, y_train_categorical), (x_test, y_test_categorical) = load_data(data_loc)
+    (X_train, y_train_categorical), (X_test, y_test_categorical) = load_data(data_loc)
 
     # Convert to one-hot encoded vectors
-    y_train = np.zeros((60000, 10))
-    y_test = np.zeros((10000, 10))
+    y_train = np.zeros((60000, 10), dtype="float64")
+    y_test = np.zeros((10000, 10), dtype="float64")
     y_train[range(60000), y_train_categorical] = 1
     y_test[range(10000), y_test_categorical] = 1
     m = Model(dense_neurons=DENSE_NEURONS, conv_filters=CONV_FILTERS, lr=LR)
+    m.fit(
+        train_data=(X_train, y_train),
+        test_data=(X_test, y_test),
+        epochs=10,
+        batch_size=32,
+    )
     # TODO: Train model
     os.remove("mnist.npz")
 
@@ -157,14 +162,62 @@ class Model:
         b2_rand = self.rng.normal(0, 1 / 784**0.5, 10)
         self.b2 = Tensor(b2_rand)
 
+        # Trainable parameters
+        self.parameters = [self.W1, self.b1, self.W2, self.b2]
+
     def __call__(self, batch):
         Y = Tensor(batch)
         Y = Y @ self.W1 + self.b1
         Y = Y.relu()
         Y = Y @ self.W2 + self.b2
-        Y = softmax(Y, axis=1)
-
+        Y = softmax(Y, axis=(1,))
         return Y
+
+    def fit(self, train_data, test_data, epochs, batch_size):
+        X_train, y_train = train_data
+        X_test, y_test = test_data
+        for epoch in range(epochs):
+            print(f"Epoch {epoch+1} / {epochs}")
+            for phase in ["train", "val"]:
+                epoch_loss = 0
+                epoch_acc = 0
+                if phase == "train":
+                    X = X_train
+                    y = y_train
+                else:
+                    X = X_test
+                    y = y_test
+                progbar = tqdm.tqdm(range(0, len(X), batch_size), mininterval=0.25)
+                for start_index in progbar:
+                    batch_inp = X[start_index : start_index + batch_size]
+                    batch_labels = y[start_index : start_index + batch_size]
+
+                    preds = self(batch_inp)
+                    batch_loss = categorical_cross_entropy(Tensor(batch_labels), preds)
+
+                    preds_categorical = preds._array.argmax(1)
+                    labels_categorical = batch_labels.argmax(1)
+                    correct = (preds_categorical == labels_categorical).sum()
+                    epoch_acc += correct
+                    epoch_loss += batch_loss._array.item()
+
+                    progbar.set_postfix(
+                        {
+                            f"{phase}_loss": f"{epoch_loss / (batch_size + start_index):.4f}",
+                            f"{phase}_accuracy": f"{epoch_acc / (batch_size + start_index):.4f}",
+                        },
+                        refresh=False,
+                    )
+
+                    if phase == "train":
+                        # Optimization, the WHOLE point of this automatic differentiation library
+                        batch_loss.backward()  # !!!!
+                        for param in self.parameters:
+                            # Stochastic Gradient Descent
+                            param._array -= self.lr * param.grad
+                epoch_loss /= len(X)
+                epoch_acc /= len(X)
+                print(f"{phase}_loss: {epoch_loss}, {phase}_acc: {epoch_acc}")
 
 
 if __name__ == "__main__":
