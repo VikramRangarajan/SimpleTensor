@@ -3,6 +3,9 @@ from urllib.request import urlretrieve
 import os
 import importlib
 import argparse
+import matplotlib.pyplot as plt
+from pathlib import Path
+from datetime import datetime
 
 if importlib.util.find_spec("tqdm") is not None:
     tqdm = importlib.import_module("tqdm")
@@ -47,13 +50,29 @@ def parse_args():
         default=16,
         help="number of filters in convolutional layer",
     )
+    parser.add_argument(
+        "-bs",
+        "--batch_size",
+        type=int,
+        default=32,
+        help="batch size",
+    )
+    parser.add_argument(
+        "-e",
+        "--epochs",
+        type=int,
+        default=10,
+        help="number of epochs to train",
+    )
     args = parser.parse_args()
 
-    PATH = args.path
+    PATH = Path(args.path).absolute()
     DENSE_NEURONS = args.dense_neurons
     LR = args.lr
     CONV_FILTERS = args.conv_filters
-    return PATH, DENSE_NEURONS, LR, CONV_FILTERS
+    BATCH_SIZE = args.batch_size
+    EPOCHS = args.epochs
+    return PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS
 
 
 class TqdmProgBar(tqdm.tqdm):
@@ -114,7 +133,10 @@ def main():
     """
     Runs everything
     """
-    PATH, DENSE_NEURONS, LR, CONV_FILTERS = parse_args()
+    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS = parse_args()
+    date_now = datetime.now()
+    print("Running at", str(date_now))
+    date = date_now.strftime("%m-%d-%Y_%H-%M-%S")
     os.makedirs(PATH, exist_ok=True)
     data_loc = os.path.join(PATH, "mnist.npz")
 
@@ -127,13 +149,22 @@ def main():
     y_train[range(60000), y_train_categorical] = 1
     y_test[range(10000), y_test_categorical] = 1
     m = Model(dense_neurons=DENSE_NEURONS, conv_filters=CONV_FILTERS, lr=LR)
-    m.fit(
+    history = m.fit(
         train_data=(X_train, y_train),
         test_data=(X_test, y_test),
-        epochs=10,
-        batch_size=32,
+        epochs=EPOCHS,
+        batch_size=BATCH_SIZE,
     )
-    # TODO: Train model
+    for metric in ["acc", "loss"]:
+        for data in history.keys():
+            if metric in data:
+                plt.plot(range(len(history[data])), history[data], label=data)
+                plt.title(f"{metric.capitalize()} vs. Epochs")
+                plt.xlabel("Epochs")
+                plt.ylabel(metric.capitalize())
+                plt.legend()
+        plt.savefig(PATH / f"{metric}_plot_{date}.png")
+        plt.show()
     os.remove("mnist.npz")
 
 
@@ -174,8 +205,33 @@ class Model:
         return Y
 
     def fit(self, train_data, test_data, epochs, batch_size):
+        """
+        Fits model to training data
+
+        Parameters
+        ----------
+        train_data : (ndarray, ndarray)
+            Training images and labels
+        test_data : (ndarray, ndarray)
+            Testing images and labels
+        epochs : int
+            Number of epochs to train
+        batch_size : int
+            Minibatch size
+
+        Returns
+        -------
+        dict[str, list]
+            History of training and testing losses and accuracies over the epochs
+        """        
         X_train, y_train = train_data
         X_test, y_test = test_data
+        history = {
+            "train_loss": [],
+            "train_acc": [],
+            "val_loss": [],
+            "val_acc": [],
+        }
         for epoch in range(epochs):
             print(f"Epoch {epoch+1} / {epochs}")
             for phase in ["train", "val"]:
@@ -187,7 +243,12 @@ class Model:
                 else:
                     X = X_test
                     y = y_test
-                progbar = tqdm.tqdm(range(0, len(X), batch_size), mininterval=0.25)
+                progbar = tqdm.tqdm(
+                    range(0, len(X), batch_size),
+                    mininterval=0.25,
+                    bar_format="Batches: {l_bar}{bar:30}{r_bar}",
+                    colour="green" if phase == "train" else "yellow",
+                )
                 for start_index in progbar:
                     batch_inp = X[start_index : start_index + batch_size]
                     batch_labels = y[start_index : start_index + batch_size]
@@ -218,6 +279,9 @@ class Model:
                 epoch_loss /= len(X)
                 epoch_acc /= len(X)
                 print(f"{phase}_loss: {epoch_loss}, {phase}_acc: {epoch_acc}")
+                history[f"{phase}_loss"].append(epoch_loss)
+                history[f"{phase}_acc"].append(epoch_acc)
+        return history
 
 
 if __name__ == "__main__":
