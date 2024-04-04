@@ -68,7 +68,7 @@ class Tensor:
     @property
     def size(self):
         return self._array.size
-    
+
     @property
     def T(self):
         return self.transpose()
@@ -636,7 +636,7 @@ class Tensor:
     def __pos__(self):
         return self
 
-    def sum(self, axis=None):
+    def sum(self, axis=None, keepdims=False):
         """
         Sums an array over given axes
 
@@ -650,21 +650,22 @@ class Tensor:
         Tensor
             Result of sum operation over axes
         """
-        res = Tensor(self._array.sum(axis=axis))
+        res = Tensor(self._array.sum(axis=axis, keepdims=keepdims))
         if Tensor.grad_enabled:
             res._op = Op.SUM
             res._parents = [self]
 
             def _backward():
-                notnullaxis: tuple = axis or tuple(range(self.ndim - 1))
-                self.grad += np.broadcast_to(
-                    np.expand_dims(res.grad, notnullaxis), self.shape
-                )
+                if keepdims:
+                    self.grad += res.grad
+                else:
+                    notnullaxis: tuple = axis or tuple(range(self.ndim - 1))
+                    self.grad += np.expand_dims(res.grad, notnullaxis)
 
             res._backward = _backward
         return res
 
-    def mean(self, axis=None):
+    def mean(self, axis=None, keepdims=False):
         """
         Mean of an array over given axes
 
@@ -681,9 +682,9 @@ class Tensor:
         size = float(self.size)
         if axis is not None:
             size = float(np.prod([self.shape[i] for i in axis]))
-        return self.sum(axis=axis) / size
+        return self.sum(axis=axis, keepdims=keepdims) / size
 
-    def std(self, axis=None, ddof=0):
+    def std(self, axis=None, ddof=0, keepdims=False):
         """
         Standard deviation over given axes.
 
@@ -703,9 +704,14 @@ class Tensor:
         df = float(self.size - ddof)
         if axis is not None:
             df = float(np.prod([self.shape[i] for i in axis]) - ddof)
-        return (((self - self.mean(axis)) ** 2).sum(axis) / df) ** 0.5
+        return (
+            ((self - self.mean(axis, keepdims=keepdims)) ** 2).sum(
+                axis, keepdims=keepdims
+            )
+            / df
+        ) ** 0.5
 
-    def var(self, axis=None, ddof=0):
+    def var(self, axis=None, ddof=0, keepdims=False):
         """
         Variance over given axes.
 
@@ -725,9 +731,11 @@ class Tensor:
         df = float(self.size - ddof)
         if axis is not None:
             df = float(np.prod([self.shape[i] for i in axis]) - ddof)
-        return ((self - self.mean(axis)) ** 2).sum(axis) / df
+        return ((self - self.mean(axis, keepdims=keepdims)) ** 2).sum(
+            axis, keepdims=keepdims
+        ) / df
 
-    def max(self, axis=None):
+    def max(self, axis=None, keepdims=False):
         """
         Max over given axes.
 
@@ -747,6 +755,33 @@ class Tensor:
         argmax = res._array.argmax(0)
         res = res[argmax, np.arange(other_size)]
         res = res.reshape(other_shape)
+        if keepdims:
+            return res.expand_dims(axis)
+
+        return res
+
+    def min(self, axis=None, keepdims=False):
+        """
+        Min over given axes.
+
+        Parameters
+        ----------
+        axis : tuple, optional
+            Axes over which to perform min over, by default None
+        """
+        all_axes = np.arange(self.ndim)
+        axis = axis or all_axes
+        axis = tuple(axis)
+        other_axes = tuple(np.setdiff1d(all_axes, axis))
+        other_shape = tuple(self.shape[i] for i in other_axes)
+        other_size = np.prod(other_shape, dtype="int")
+        res = self.transpose(axis + other_axes)
+        res = res.reshape((-1, other_size))
+        argmin = res._array.argmin(0)
+        res = res[argmin, np.arange(other_size)]
+        res = res.reshape(other_shape)
+        if keepdims:
+            return res.expand_dims(axis)
 
         return res
 

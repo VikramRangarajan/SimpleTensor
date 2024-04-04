@@ -1,4 +1,4 @@
-from simpletensor import Tensor  # , no_grad
+from simpletensor import Tensor, softmax
 import numpy as np
 from urllib.request import urlretrieve
 import os
@@ -150,9 +150,19 @@ class Model:
         b1_rand = self.rng.normal(0, 1 / 784**0.5, kwargs["dense_neurons"])
         self.b1 = Tensor(b1_rand)
 
+        # Second dense layer
+        W2_rand = self.rng.normal(0, 1 / 784**0.5, (kwargs["dense_neurons"], 10))
+        self.W2 = Tensor(W2_rand)
+
+        b2_rand = self.rng.normal(0, 1 / 784**0.5, 10)
+        self.b2 = Tensor(b2_rand)
+
     def __call__(self, batch):
         Y = Tensor(batch)
         Y = Y @ self.W1 + self.b1
+        Y = Y.relu()
+        Y = Y @ self.W2 + self.b2
+        Y = softmax(Y, axis=1)
 
         return Y
 

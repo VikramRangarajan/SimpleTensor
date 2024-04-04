@@ -26,31 +26,23 @@ class Op(IntEnum):
     """Apply natural logarithm element wise"""
     MATMUL = 8
     """Matrix Multiplication of two tensors"""
-    MAX = 9
-    """Max over a tensor"""
-    MEAN = 10
-    """Mean over a tensor"""
-    MIN = 11
-    """Min over a tensor"""
-    MUL = 12
+    MUL = 9
     """Multiplication of two tensors"""
-    NONE = 13
+    NONE = 10
     """No operation, default _op value of a Tensor."""
-    POW = 14
+    POW = 11
     """Tensor raised to a power of another tensor"""
-    RELU = 15
+    RELU = 12
     """Apply ReLU function element wise"""
-    RESHAPE = 16
+    RESHAPE = 13
     """Reshape a tensor"""
-    SQUEEZE = 17
+    SQUEEZE = 14
     """Squeeze a tensor's size 1 dimensions"""
-    STD = 18
-    """Standard Deviation over a tensor"""
-    SUB = 19
+    SUB = 15
     """Subtraction of two tensors"""
-    SUM = 20
+    SUM = 16
     """Sum over a tensor"""
-    T = 21
+    T = 17
     """Transpose a tensor"""
 
     def __str__(self):
@@ -61,25 +53,22 @@ class Op(IntEnum):
 
 
 str_dict = {
-    Op.NONE: "",
     Op.ADD: "+",
-    Op.SUB: "-",
-    Op.MUL: "*",
-    Op.MATMUL: "@",
-    Op.POW: "**",
-    Op.SUM: "sum",
-    Op.MEAN: "mean",
-    Op.LOG: "log",
-    Op.EXP: "exp",
-    Op.T: "T",
-    Op.SQUEEZE: "squeeze",
-    Op.EXPAND_DIMS: "expand_dims",
-    Op.RESHAPE: "reshape",
-    Op.RELU: "relu",
     Op.CONVOLVE: "convolve",
     Op.CORRELATE: "correlate",
-    Op.MAX: "max",
-    Op.MIN: "min",
-    Op.STD: "std",
+    Op.EXP: "exp",
+    Op.EXPAND_DIMS: "expand_dims",
+    Op.FLIP: "flip",
     Op.INDEX: "index",
+    Op.LOG: "log",
+    Op.MATMUL: "@",
+    Op.MUL: "*",
+    Op.NONE: "",
+    Op.POW: "**",
+    Op.RELU: "relu",
+    Op.RESHAPE: "reshape",
+    Op.SQUEEZE: "squeeze",
+    Op.SUB: "-",
+    Op.SUM: "sum",
+    Op.T: "T",
 }
