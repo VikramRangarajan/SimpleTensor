@@ -206,10 +206,16 @@ class Model:
 
         # Convolutional layer
         K_rand = self.rng.normal(0, 1 / 3, (kwargs["conv_filters"], 1, 3, 3))
-        self.K = Tensor(K_rand)
+        self.K = Tensor(
+            K_rand,
+            dtype="float64",
+        )
 
         conv_bias_rand = self.rng.normal(0, 1 / 3, (kwargs["conv_filters"], 1, 1))
-        self.conv_bias = Tensor(conv_bias_rand)
+        self.conv_bias = Tensor(
+            conv_bias_rand,
+            dtype="float64",
+        )
 
         # First dense layer
         # It's 26 and 26 because we're doing a valid convolution between a (28, 28) image and a (3, 3) kernel
@@ -219,21 +225,37 @@ class Model:
             1 / output_size_of_conv**0.5,
             (output_size_of_conv, kwargs["dense_neurons"]),
         )
-        self.W1 = Tensor(W1_rand)
+        self.W1 = Tensor(
+            W1_rand,
+            dtype="float64",
+        )
 
         b1_rand = self.rng.normal(
-            0, 1 / output_size_of_conv**0.5, kwargs["dense_neurons"]
+            0,
+            1 / output_size_of_conv**0.5,
+            kwargs["dense_neurons"],
         )
-        self.b1 = Tensor(b1_rand)
+        self.b1 = Tensor(
+            b1_rand,
+            dtype="float64",
+        )
 
         # Second dense layer
         W2_rand = self.rng.normal(
-            0, 1 / kwargs["dense_neurons"] ** 0.5, (kwargs["dense_neurons"], 10)
+            0,
+            1 / kwargs["dense_neurons"] ** 0.5,
+            (kwargs["dense_neurons"], 10),
         )
-        self.W2 = Tensor(W2_rand)
+        self.W2 = Tensor(
+            W2_rand,
+            dtype="float64",
+        )
 
         b2_rand = self.rng.normal(0, 1 / kwargs["dense_neurons"] ** 0.5, 10)
-        self.b2 = Tensor(b2_rand)
+        self.b2 = Tensor(
+            b2_rand,
+            dtype="float64",
+        )
 
         # Trainable parameters
         self.parameters = [self.W1, self.b1, self.W2, self.b2]

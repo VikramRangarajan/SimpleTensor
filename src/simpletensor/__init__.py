@@ -25,8 +25,10 @@ def use_cupy():
     if cupy is None:
         warnings.warn("Cupy not installed, use_cupy() function does nothing")
         return
-    np = Backend(cupy)
-    scipy = Backend(cupyx.scipy)
+    _cupy = importlib.import_module("cupy")
+    _cupyx = importlib.import_module("cupyx")
+    np = Backend(_cupy)
+    scipy = Backend(_cupyx.scipy)
 
 
 def use_numpy():
