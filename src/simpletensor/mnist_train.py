@@ -1,16 +1,12 @@
 from simpletensor import Tensor, softmax, categorical_cross_entropy, np
 from urllib.request import urlretrieve
 import os
-import importlib
 import argparse
 import matplotlib.pyplot as plt
 from pathlib import Path
-from datetime import datetime
-
-if importlib.util.find_spec("tqdm") is not None:
-    tqdm = importlib.import_module("tqdm")
-else:
-    raise ImportError("tqdm Not Found. Please install it to use this showcase.")
+import cv2
+import tqdm
+# import pickle
 
 
 def parse_args():
@@ -121,10 +117,10 @@ def load_data(location):
     """
     data = np.load(location)
     return (
-        data["x_train"].reshape((-1, 784)).astype("float32") / 255.0,
+        data["x_train"].reshape((60000, 1, 28, 28)).astype("float64") / 255.0,
         data["y_train"],
     ), (
-        data["x_test"].reshape((-1, 784)).astype("float32") / 255.0,
+        data["x_test"].reshape((10000, 1, 28, 28)).astype("float64") / 255.0,
         data["y_test"],
     )
 
@@ -134,9 +130,6 @@ def main():
     Runs everything
     """
     PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS = parse_args()
-    date_now = datetime.now()
-    print("Running at", str(date_now))
-    date = date_now.strftime("%m-%d-%Y_%H-%M-%S")
     os.makedirs(PATH, exist_ok=True)
     data_loc = os.path.join(PATH, "mnist.npz")
 
@@ -148,8 +141,8 @@ def main():
     y_test = np.zeros((10000, 10), dtype="float64")
     y_train[range(60000), y_train_categorical] = 1
     y_test[range(10000), y_test_categorical] = 1
-    m = Model(dense_neurons=DENSE_NEURONS, conv_filters=CONV_FILTERS, lr=LR)
-    history = m.fit(
+    model = Model(dense_neurons=DENSE_NEURONS, conv_filters=CONV_FILTERS, lr=LR)
+    history = model.fit(
         train_data=(X_train, y_train),
         test_data=(X_test, y_test),
         epochs=EPOCHS,
@@ -163,9 +156,41 @@ def main():
                 plt.xlabel("Epochs")
                 plt.ylabel(metric.capitalize())
                 plt.legend()
-        plt.savefig(PATH / f"{metric}_plot_{date}.png")
+        plt.savefig(PATH / f"{metric}_plot.png")
         plt.show()
     os.remove("mnist.npz")
+    # with open(PATH / "model.pickle", "wb") as f:
+    #     pickle.dump(model, f)
+    canvas = np.zeros((400, 400))
+    drawing = False
+
+    def draw(event, x, y, flags, params):
+        nonlocal drawing
+        if event == cv2.EVENT_LBUTTONDOWN:
+            drawing = True
+        elif event == cv2.EVENT_LBUTTONUP:
+            drawing = False
+        elif event == cv2.EVENT_MOUSEMOVE and drawing:
+            cv2.circle(canvas, (x, y), 8, 255, -1)
+
+    cv2.imshow("Draw Digit", canvas)
+    cv2.setMouseCallback("Draw Digit", draw)
+    while True:
+        cv2.imshow("Draw Digit", canvas)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("r"):
+            canvas = np.zeros((400, 400))
+        if key == ord("p"):
+            image = cv2.blur(canvas, (15, 15), 0)
+            image = cv2.resize(image, (28, 28), cv2.INTER_NEAREST)
+            prediction = (
+                model(image[None, None].astype("float64") / 255.0)._array[0].argmax()
+            )
+            print(prediction)
+        if key == ord("q"):
+            break
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 class Model:
@@ -179,18 +204,35 @@ class Model:
 
         # Use Xavier normal initialization
 
+        # Convolutional layer
+        K_rand = self.rng.normal(0, 1 / 3, (kwargs["conv_filters"], 1, 3, 3))
+        self.K = Tensor(K_rand)
+
+        conv_bias_rand = self.rng.normal(0, 1 / 3, (kwargs["conv_filters"], 1, 1))
+        self.conv_bias = Tensor(conv_bias_rand)
+
         # First dense layer
-        W1_rand = self.rng.normal(0, 1 / 784**0.5, (784, kwargs["dense_neurons"]))
+        # It's 26 and 26 because we're doing a valid convolution between a (28, 28) image and a (3, 3) kernel
+        output_size_of_conv = kwargs["conv_filters"] * 26 * 26
+        W1_rand = self.rng.normal(
+            0,
+            1 / output_size_of_conv**0.5,
+            (output_size_of_conv, kwargs["dense_neurons"]),
+        )
         self.W1 = Tensor(W1_rand)
 
-        b1_rand = self.rng.normal(0, 1 / 784**0.5, kwargs["dense_neurons"])
+        b1_rand = self.rng.normal(
+            0, 1 / output_size_of_conv**0.5, kwargs["dense_neurons"]
+        )
         self.b1 = Tensor(b1_rand)
 
         # Second dense layer
-        W2_rand = self.rng.normal(0, 1 / 784**0.5, (kwargs["dense_neurons"], 10))
+        W2_rand = self.rng.normal(
+            0, 1 / kwargs["dense_neurons"] ** 0.5, (kwargs["dense_neurons"], 10)
+        )
         self.W2 = Tensor(W2_rand)
 
-        b2_rand = self.rng.normal(0, 1 / 784**0.5, 10)
+        b2_rand = self.rng.normal(0, 1 / kwargs["dense_neurons"] ** 0.5, 10)
         self.b2 = Tensor(b2_rand)
 
         # Trainable parameters
@@ -198,10 +240,13 @@ class Model:
 
     def __call__(self, batch):
         Y = Tensor(batch)
-        Y = Y @ self.W1 + self.b1
-        Y = Y.relu()
-        Y = Y @ self.W2 + self.b2
-        Y = softmax(Y, axis=(1,))
+        Y = Y.convolve(self.K) + self.conv_bias  # Conv layer
+        Y = Y.relu()  # Relu
+        Y = Y.reshape((Y.shape[0], -1))  # Flatten output of conv layer
+        Y = Y @ self.W1 + self.b1  # Dense layer
+        Y = Y.relu()  # Relu
+        Y = Y @ self.W2 + self.b2  # Final dense layer
+        Y = softmax(Y, axis=(1,))  # Softmax
         return Y
 
     def fit(self, train_data, test_data, epochs, batch_size):
@@ -223,7 +268,7 @@ class Model:
         -------
         dict[str, list]
             History of training and testing losses and accuracies over the epochs
-        """        
+        """
         X_train, y_train = train_data
         X_test, y_test = test_data
         history = {

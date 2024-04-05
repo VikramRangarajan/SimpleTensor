@@ -1,5 +1,7 @@
 from .operation import Op
-from simpletensor import np
+from simpletensor import np, scipy
+
+fftconvolve = scipy.signal.fftconvolve
 
 
 class Tensor:
@@ -369,6 +371,63 @@ class Tensor:
 
     __itruediv__ = __truediv__
 
+    def convolve(self, kernel):
+        """
+        N-Dimensional Valid Convolution over a batch using Fast-Fourier Transform method
+
+        Parameters
+        ----------
+        self : Tensor
+            Tensor to be convolved. Shape: (batch_size, channels, ...)
+        kernel : Tensor
+            Kernel in convolution operation. Shape: (num_filters, channels, ...)
+
+        Returns
+        -------
+        Tensor
+            Output. Shape: (batch_size, num_filters, ...)
+        """
+        kernel = astensor(kernel)
+        res = Tensor(
+            np.squeeze(
+                fftconvolve(
+                    self._array[:, None, ...],  # Expands filters dimension
+                    kernel._array[None],  # Expands batch dimension
+                    mode="valid",
+                    axes=tuple(range(2, self.ndim + 1)),  # Convolve over only x, y, ...
+                ),
+                axis=2,  # Squeezes out channels dimension
+            )  # Now size of (batch_size, filters, ...)
+        )
+        if Tensor.grad_enabled:
+            res._op = Op.CONVOLVE
+            res._parents = [self, kernel]
+
+            def _backward():
+                self.grad += fftconvolve(
+                    # Expand channels dimension (batch_size, channels=1, filters, ...)
+                    res.grad[:, None, ...],
+                    # (batch_size=1, channels, filters, ...)
+                    kernel._array.transpose((1, 0) + tuple(range(2, kernel.ndim)))[
+                        None
+                    ],
+                    mode="full",
+                    axes=tuple(range(3, kernel.ndim + 1)),
+                ).sum(axis=2)
+                kernel.grad += fftconvolve(
+                    # Expand filters dimension (batch_size, filters=1, channels, ...)
+                    self._array[:, None, ...],
+                    # Flip, conj, and expand channels dimension (batch_size, filters, channels=1, ...)
+                    np.flip(res.grad, axis=tuple(range(2, res.ndim))).conj()[
+                        :, :, None, ...
+                    ],
+                    mode="valid",
+                    axes=tuple(range(3, self.ndim + 1)),
+                ).sum(axis=0)
+
+            res._backward = _backward
+        return res
+
     """
 
     Optional:
@@ -379,21 +438,9 @@ class Tensor:
     """
     UNARY OPERATIONS
 
-    TODO:
-    log
-    exp
-    transpose
-    squeeze
-    flip
-    expand_dims
-    reshape
-    relu
-
     Optional:
     sin, cos, tan
     inverse trig functions
-    max
-    min
     """
 
     def exp(self):
