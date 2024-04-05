@@ -1,4 +1,5 @@
-from simpletensor import Tensor, softmax, categorical_cross_entropy, np
+from simpletensor import Tensor, softmax, categorical_cross_entropy
+from simpletensor.array_backend import np
 from urllib.request import urlretrieve
 import os
 import argparse

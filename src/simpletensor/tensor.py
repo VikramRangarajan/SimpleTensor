@@ -1,7 +1,8 @@
 from .operation import Op
-from simpletensor import np, scipy
+from .array_backend import np, signal
+import random
 
-fftconvolve = scipy.signal.fftconvolve
+fftconvolve = signal.fftconvolve
 
 
 class Tensor:
@@ -26,14 +27,8 @@ class Tensor:
 
         # Gives tensor unique name
         if name is None:
-            self.name = "".join(
-                [
-                    np.random.choice(
-                        list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-                    )
-                    for _ in range(10)
-                ]
-            )
+            chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            self.name = "".join([random.choice(chars) for _ in range(10)])
         else:
             self.name = name
 
