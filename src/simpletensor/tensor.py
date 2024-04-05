@@ -2,8 +2,6 @@ from .operation import Op
 from .array_backend import np, signal
 import random
 
-fftconvolve = signal.fftconvolve
-
 
 class Tensor:
     """
@@ -385,7 +383,7 @@ class Tensor:
         kernel = astensor(kernel)
         res = Tensor(
             np.squeeze(
-                fftconvolve(
+                signal.fftconvolve(
                     self._array[:, None, ...],  # Expands filters dimension
                     kernel._array[None],  # Expands batch dimension
                     mode="valid",
@@ -399,7 +397,7 @@ class Tensor:
             res._parents = [self, kernel]
 
             def _backward():
-                self.grad += fftconvolve(
+                self.grad += signal.fftconvolve(
                     # Expand channels dimension (batch_size, channels=1, filters, ...)
                     res.grad[:, None, ...],
                     # (batch_size=1, channels, filters, ...)
@@ -409,7 +407,7 @@ class Tensor:
                     mode="full",
                     axes=tuple(range(3, kernel.ndim + 1)),
                 ).sum(axis=2)
-                kernel.grad += fftconvolve(
+                kernel.grad += signal.fftconvolve(
                     # Expand filters dimension (batch_size, filters=1, channels, ...)
                     self._array[:, None, ...],
                     # Flip, conj, and expand channels dimension (batch_size, filters, channels=1, ...)
@@ -506,7 +504,7 @@ class Tensor:
             res._parents = [self]
 
             def _backward():
-                self.grad += np.transpose(res.grad, np.argsort(axis))
+                self.grad += np.transpose(res.grad, np.argsort(np.array(axis)).tolist())
 
             res._backward = _backward
         return res
@@ -720,7 +718,7 @@ class Tensor:
         """
         size = float(self.size)
         if axis is not None:
-            size = float(np.prod([self.shape[i] for i in axis]))
+            size = float(_product([self.shape[i] for i in axis]))
         return self.sum(axis=axis, keepdims=keepdims) / size
 
     def std(self, axis=None, ddof=0, keepdims=False):
@@ -742,7 +740,7 @@ class Tensor:
         """
         df = float(self.size - ddof)
         if axis is not None:
-            df = float(np.prod([self.shape[i] for i in axis]) - ddof)
+            df = float(_product([self.shape[i] for i in axis]) - ddof)
         return (
             ((self - self.mean(axis, keepdims=keepdims)) ** 2.0).sum(
                 axis, keepdims=keepdims
@@ -769,7 +767,7 @@ class Tensor:
         """
         df = float(self.size - ddof)
         if axis is not None:
-            df = float(np.prod([self.shape[i] for i in axis]) - ddof)
+            df = float(_product([self.shape[i] for i in axis]) - ddof)
         return ((self - self.mean(axis, keepdims=keepdims)) ** 2.0).sum(
             axis, keepdims=keepdims
         ) / df
@@ -783,12 +781,12 @@ class Tensor:
         axis : tuple, optional
             Axes over which to perform max over, by default None
         """
-        all_axes = np.arange(self.ndim)
+        all_axes = tuple(range(self.ndim))
         axis = axis or all_axes
         axis = tuple(axis)
-        other_axes = tuple(np.setdiff1d(all_axes, axis))
+        other_axes = _setdiff(all_axes, axis)
         other_shape = tuple(self.shape[i] for i in other_axes)
-        other_size = np.prod(other_shape, dtype="int")
+        other_size = _product(other_shape)
         res = self.transpose(axis + other_axes)
         res = res.reshape((-1, other_size))
         argmax = res._array.argmax(0)
@@ -808,12 +806,12 @@ class Tensor:
         axis : tuple, optional
             Axes over which to perform min over, by default None
         """
-        all_axes = np.arange(self.ndim)
+        all_axes = tuple(range(self.ndim))
         axis = axis or all_axes
         axis = tuple(axis)
-        other_axes = tuple(np.setdiff1d(all_axes, axis))
+        other_axes = _setdiff(all_axes, axis)
         other_shape = tuple(self.shape[i] for i in other_axes)
-        other_size = np.prod(other_shape, dtype="int")
+        other_size = _product(other_shape)
         res = self.transpose(axis + other_axes)
         res = res.reshape((-1, other_size))
         argmin = res._array.argmin(0)
@@ -845,6 +843,17 @@ def astensor(a, dtype=None):
         return a
     else:
         return Tensor(a, dtype)
+
+
+def _product(x):
+    i = 1
+    for elem in x:
+        i *= int(elem)
+    return i
+
+
+def _setdiff(a, b):
+    return tuple(int(elem) for elem in a if elem not in b)
 
 
 def _padded_broadcast_shapes(*shapes, max_ndim=None):

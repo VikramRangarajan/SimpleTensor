@@ -1,5 +1,6 @@
-from simpletensor import Tensor, softmax, categorical_cross_entropy
+from simpletensor import Tensor, softmax, categorical_cross_entropy, use_cupy, use_numpy
 from simpletensor.array_backend import np
+import numpy  # opencv not compatible with cupy arrays
 from urllib.request import urlretrieve
 import os
 import argparse
@@ -7,7 +8,6 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import cv2
 import tqdm
-# import pickle
 
 
 def parse_args():
@@ -61,6 +61,8 @@ def parse_args():
         default=10,
         help="number of epochs to train",
     )
+    parser.add_argument("-g", "--gpu", default=True, action="store_true")
+    parser.add_argument("-ng", "--no-gpu", dest="gpu", action="store_false")
     args = parser.parse_args()
 
     PATH = Path(args.path).absolute()
@@ -69,6 +71,11 @@ def parse_args():
     CONV_FILTERS = args.conv_filters
     BATCH_SIZE = args.batch_size
     EPOCHS = args.epochs
+    USE_GPU = args.gpu
+    if USE_GPU:
+        use_cupy()
+    else:
+        use_numpy()
     return PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS
 
 
@@ -160,9 +167,7 @@ def main():
         plt.savefig(PATH / f"{metric}_plot.png")
         plt.show()
     os.remove("mnist.npz")
-    # with open(PATH / "model.pickle", "wb") as f:
-    #     pickle.dump(model, f)
-    canvas = np.zeros((400, 400))
+    canvas = numpy.zeros((400, 400))
     drawing = False
 
     def draw(event, x, y, flags, params):
@@ -180,12 +185,14 @@ def main():
         cv2.imshow("Draw Digit", canvas)
         key = cv2.waitKey(1) & 0xFF
         if key == ord("r"):
-            canvas = np.zeros((400, 400))
+            canvas = numpy.zeros((400, 400))
         if key == ord("p"):
             image = cv2.blur(canvas, (15, 15), 0)
             image = cv2.resize(image, (28, 28), cv2.INTER_NEAREST)
             prediction = (
-                model(image[None, None].astype("float64") / 255.0)._array[0].argmax()
+                model(np.array(image[None, None]).astype("float64") / 255.0)
+                ._array[0]
+                .argmax()
             )
             print(prediction)
         if key == ord("q"):
@@ -206,13 +213,13 @@ class Model:
         # Use Xavier normal initialization
 
         # Convolutional layer
-        K_rand = self.rng.normal(0, 1 / 3, (kwargs["conv_filters"], 1, 3, 3))
+        K_rand = self.rng.standard_normal((kwargs["conv_filters"], 1, 3, 3)) / 3
         self.K = Tensor(
             K_rand,
             dtype="float64",
         )
 
-        conv_bias_rand = self.rng.normal(0, 1 / 3, (kwargs["conv_filters"], 1, 1))
+        conv_bias_rand = self.rng.standard_normal((kwargs["conv_filters"], 1, 1)) / 3
         self.conv_bias = Tensor(
             conv_bias_rand,
             dtype="float64",
@@ -221,20 +228,22 @@ class Model:
         # First dense layer
         # It's 26 and 26 because we're doing a valid convolution between a (28, 28) image and a (3, 3) kernel
         output_size_of_conv = kwargs["conv_filters"] * 26 * 26
-        W1_rand = self.rng.normal(
-            0,
-            1 / output_size_of_conv**0.5,
-            (output_size_of_conv, kwargs["dense_neurons"]),
+        W1_rand = (
+            self.rng.standard_normal(
+                (output_size_of_conv, kwargs["dense_neurons"]),
+            )
+            / output_size_of_conv**0.5
         )
         self.W1 = Tensor(
             W1_rand,
             dtype="float64",
         )
 
-        b1_rand = self.rng.normal(
-            0,
-            1 / output_size_of_conv**0.5,
-            kwargs["dense_neurons"],
+        b1_rand = (
+            self.rng.standard_normal(
+                kwargs["dense_neurons"],
+            )
+            / output_size_of_conv**0.5
         )
         self.b1 = Tensor(
             b1_rand,
@@ -242,17 +251,16 @@ class Model:
         )
 
         # Second dense layer
-        W2_rand = self.rng.normal(
-            0,
-            1 / kwargs["dense_neurons"] ** 0.5,
-            (kwargs["dense_neurons"], 10),
+        W2_rand = (
+            self.rng.standard_normal((kwargs["dense_neurons"], 10))
+            / kwargs["dense_neurons"] ** 0.5
         )
         self.W2 = Tensor(
             W2_rand,
             dtype="float64",
         )
 
-        b2_rand = self.rng.normal(0, 1 / kwargs["dense_neurons"] ** 0.5, 10)
+        b2_rand = self.rng.standard_normal(10) / kwargs["dense_neurons"] ** 0.5
         self.b2 = Tensor(
             b2_rand,
             dtype="float64",
@@ -318,8 +326,8 @@ class Model:
                     colour="green" if phase == "train" else "yellow",
                 )
                 for start_index in progbar:
-                    batch_inp = X[start_index : start_index + batch_size]
-                    batch_labels = y[start_index : start_index + batch_size]
+                    batch_inp = X[start_index : start_index + batch_size].copy()
+                    batch_labels = y[start_index : start_index + batch_size].copy()
 
                     preds = self(batch_inp)
                     batch_loss = categorical_cross_entropy(Tensor(batch_labels), preds)
@@ -327,7 +335,7 @@ class Model:
                     preds_categorical = preds._array.argmax(1)
                     labels_categorical = batch_labels.argmax(1)
                     correct = (preds_categorical == labels_categorical).sum()
-                    epoch_acc += correct
+                    epoch_acc += int(correct)
                     epoch_loss += batch_loss._array.item()
 
                     progbar.set_postfix(
@@ -346,7 +354,7 @@ class Model:
                             param._array -= self.lr * param.grad
                 epoch_loss /= len(X)
                 epoch_acc /= len(X)
-                print(f"{phase}_loss: {epoch_loss}, {phase}_acc: {epoch_acc}")
+                print(f"{phase}_loss: {epoch_loss:.6f}, {phase}_acc: {epoch_acc:.6f}")
                 history[f"{phase}_loss"].append(epoch_loss)
                 history[f"{phase}_acc"].append(epoch_acc)
         return history

@@ -2,10 +2,8 @@
 from simpletensor.array_backend import use_cupy, use_numpy, _found_cupy, _found_cupyx
 
 if _found_cupy is not None and _found_cupyx is not None:
-    print("Cupy successfully imported, using GPU (cupy)")
     use_cupy()
 else:
-    print("Cupy failed to import, using CPU (numpy & scipy)")
     use_numpy()
 
 
