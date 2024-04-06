@@ -19,7 +19,6 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-GPU = ["cupy"]
 showcase = ["matplotlib", "opencv-python", "tqdm"]
 
 [project.urls]

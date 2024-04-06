@@ -1,4 +1,5 @@
-from .tensor import astensor, np
+from .tensor import astensor
+from .array_backend import np
 
 
 def add(a1, a2):
@@ -142,8 +143,21 @@ def relu(a):
 
 
 def softmax(a, axis=None):
-    """
-    Numerically stable n-dimensional softmax computation over any axes
+    r"""
+    Numerically stable n-dimensional softmax computation over any axes. Converts
+    input into valid probability distributions.
+
+    Softmax is defined as:
+
+    .. math::
+        \text{softmax}(\vec x) = \frac{e^{\vec x}}{\sum_{i=1}^n e^{x_i}}
+
+    However, the numerically stable version of softmax in this implementation is defined as:
+
+    .. math::
+        \text{Let x_stable}(\vec x) = \vec x - \text{max}(\vec x) \\
+        \text{softmax_stable}(\vec x) = 
+        \frac{e^{\text{x_stable}(\vec x)}}{\sum_{i=1}^n e^{\text{x_stable}(\vec x)_i}}
 
     Parameters
     ----------
@@ -151,6 +165,8 @@ def softmax(a, axis=None):
         Input tensor
     axis : tuple of ints, optional
         Axis over which values should be turned into a valid probability distribution, by default None
+
+    
 
     Returns
     -------
@@ -184,3 +200,44 @@ def categorical_cross_entropy(y_true, y_pred):
         _description_
     """
     return -((y_true * y_pred.logn()).sum(axis=1).mean())
+
+
+def show_graph(root):
+    """
+    Returns a graphviz visualization of the computation graph,
+    starting at this root Tensor. It shows all the Tensors, the Tensors' names,
+    shapes, dtypes, and all operations used to create all the Tensors in the
+    graph.
+
+    Parameters
+    ----------
+    root : Tensor
+        Root tensor for the computation graph. Anything beyond the root
+        is not shown.
+
+    Returns
+    -------
+    Digraph
+        GraphViz DiGraph object representing the computation graph
+    """    
+    import graphviz
+    dot = graphviz.Digraph("Graph", graph_attr={"rankdir": "LR"})
+    queue = [root]
+    visited = set()
+    i = 0
+    while queue != []:
+        node = queue.pop()
+        name = node.name
+        tensor_desc = f"{name}\\nShape: {node.shape}\\nDtype: {node.dtype}"
+        dot.node(name, tensor_desc, shape="record")
+        if str(node._op) != "":
+            dot.node(f"{str(node._op)}_{i}", str(node._op), shape="circle")
+            dot.edge(f"{str(node._op)}_{i}", name)
+        for child in node._parents:
+            dot.edge(child.name, f"{str(node._op)}_{i}")
+        for parent in node._parents:
+            if parent not in visited:
+                queue.append(parent)
+                visited.add(parent)
+        i += 1
+    return dot

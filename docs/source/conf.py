@@ -26,6 +26,7 @@ extensions = [
     "sphinx.ext.linkcode",
     "numpydoc",
     "sphinx.ext.autosummary",
+    "myst_nb",
 ]
 code_url = "https://github.com/VikramRangarajan/simpletensor/tree/main"
 
