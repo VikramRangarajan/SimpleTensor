@@ -4,10 +4,15 @@ import numpy  # opencv not compatible with cupy arrays
 from urllib.request import urlretrieve
 import os
 import argparse
-import matplotlib.pyplot as plt
 from pathlib import Path
-import cv2
-import tqdm
+import importlib
+
+if importlib.util.find_spec("matplotlib.pyplot"):
+    plt = importlib.import_module("matplotlib.pyplot")
+if importlib.util.find_spec("cv2"):
+    cv2 = importlib.import_module("cv2")
+if importlib.util.find_spec("tqdm"):
+    tqdm = importlib.import_module("tqdm")
 
 
 def parse_args():
@@ -75,20 +80,6 @@ def parse_args():
         action="store_false",
         help="Use CPU only",
     )
-    parser.add_argument(
-        "-i",
-        "--interact",
-        default=True,
-        action="store_true",
-        help="Interact (draw) with model after it trains",
-    )
-    parser.add_argument(
-        "-ni",
-        "--no-interact",
-        dest="interact",
-        action="store_false",
-        help="Don't interact (draw) with model after it trains",
-    )
     args = parser.parse_args()
 
     PATH = Path(args.path).absolute()
@@ -98,12 +89,11 @@ def parse_args():
     BATCH_SIZE = args.batch_size
     EPOCHS = args.epochs
     USE_GPU = args.gpu
-    INTERACT = args.interact
     if USE_GPU:
         use_cupy()
     else:
         use_numpy()
-    return PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS, INTERACT
+    return PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS
 
 
 class TqdmProgBar(tqdm.tqdm):
@@ -164,7 +154,7 @@ def main(*args):
     """
     Runs everything
     """
-    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS, INTERACT = (
+    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS = (
         args or parse_args()
     )
     os.makedirs(PATH, exist_ok=True)
@@ -196,39 +186,39 @@ def main(*args):
         plt.savefig(PATH / f"{metric}_plot.png")
         plt.show()
     os.remove("mnist.npz")
-    if INTERACT:
-        canvas = numpy.zeros((400, 400))
-        drawing = False
+    cv2.namedWindow("Draw Digit", cv2.WINDOW_NORMAL)
+    canvas = numpy.zeros((400, 400))
+    drawing = False
 
-        def draw(event, x, y, flags, params):
-            nonlocal drawing
-            if event == cv2.EVENT_LBUTTONDOWN:
-                drawing = True
-            elif event == cv2.EVENT_LBUTTONUP:
-                drawing = False
-            elif event == cv2.EVENT_MOUSEMOVE and drawing:
-                cv2.circle(canvas, (x, y), 8, 255, -1)
+    def draw(event, x, y, flags, params):
+        nonlocal drawing
+        if event == cv2.EVENT_LBUTTONDOWN:
+            drawing = True
+        elif event == cv2.EVENT_LBUTTONUP:
+            drawing = False
+        elif event == cv2.EVENT_MOUSEMOVE and drawing:
+            cv2.circle(canvas, (x, y), 8, 255, -1)
 
+    cv2.imshow("Draw Digit", canvas)
+    cv2.setMouseCallback("Draw Digit", draw)
+    while True:
         cv2.imshow("Draw Digit", canvas)
-        cv2.setMouseCallback("Draw Digit", draw)
-        while True:
-            cv2.imshow("Draw Digit", canvas)
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord("r"):
-                canvas = numpy.zeros((400, 400))
-            if key == ord("p"):
-                image = cv2.blur(canvas, (15, 15), 0)
-                image = cv2.resize(image, (28, 28), cv2.INTER_NEAREST)
-                prediction = (
-                    model(np.array(image[None, None]).astype("float64") / 255.0)
-                    ._array[0]
-                    .argmax()
-                )
-                print(prediction)
-            if key == ord("q"):
-                break
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("r"):
+            canvas = numpy.zeros((400, 400))
+        if key == ord("p"):
+            image = cv2.blur(canvas, (15, 15), 0)
+            image = cv2.resize(image, (28, 28), cv2.INTER_NEAREST)
+            prediction = (
+                model(np.array(image[None, None]).astype("float64") / 255.0)
+                ._array[0]
+                .argmax()
+            )
+            print(prediction)
+        if key == ord("q"):
+            break
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 class Model:

@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 
 graphs
-*.ipynb
+test.ipynb
 docs/build
 docs/build.bat
 docs/make.bat
