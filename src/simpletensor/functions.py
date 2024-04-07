@@ -179,7 +179,6 @@ def softmax(a, axis=None):
     return exp_a / exp_a.sum(axis=axis, keepdims=True)
 
 
-
 def categorical_cross_entropy(y_true, y_pred):
     r"""
     Log loss / cross entropy loss over a batch. Defined as:
@@ -219,8 +218,9 @@ def show_graph(root):
     -------
     Digraph
         GraphViz DiGraph object representing the computation graph
-    """    
+    """
     import graphviz
+
     dot = graphviz.Digraph("Graph", graph_attr={"rankdir": "LR"})
     queue = [root]
     visited = set()

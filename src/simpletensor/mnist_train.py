@@ -154,9 +154,7 @@ def main(*args):
     """
     Runs everything
     """
-    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS = (
-        args or parse_args()
-    )
+    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS = args or parse_args()
     os.makedirs(PATH, exist_ok=True)
     data_loc = os.path.join(PATH, "mnist.npz")
 
@@ -187,17 +185,28 @@ def main(*args):
         plt.show()
     os.remove("mnist.npz")
     cv2.namedWindow("Draw Digit", cv2.WINDOW_NORMAL)
-    canvas = numpy.zeros((400, 400))
+    canvas = numpy.zeros((280, 280), dtype="uint8")
     drawing = False
+    prevx, prevy = None, None
 
     def draw(event, x, y, flags, params):
-        nonlocal drawing
+        nonlocal drawing, prevx, prevy, canvas
         if event == cv2.EVENT_LBUTTONDOWN:
             drawing = True
+            prevx, prevy = x, y
         elif event == cv2.EVENT_LBUTTONUP:
             drawing = False
         elif event == cv2.EVENT_MOUSEMOVE and drawing:
-            cv2.circle(canvas, (x, y), 8, 255, -1)
+            blank = numpy.zeros((280, 280), dtype="uint8")
+            cv2.line(blank, (prevx, prevy), (x, y), color=255, thickness=28)
+            blank = cv2.blur(blank, (13, 13))
+            canvas = canvas | blank
+            canvas = cv2.resize(
+                cv2.resize(canvas, (28, 28), interpolation=cv2.INTER_LINEAR),
+                (280, 280),
+                interpolation=cv2.INTER_NEAREST,
+            )
+            prevx, prevy = x, y
 
     cv2.imshow("Draw Digit", canvas)
     cv2.setMouseCallback("Draw Digit", draw)
@@ -205,10 +214,10 @@ def main(*args):
         cv2.imshow("Draw Digit", canvas)
         key = cv2.waitKey(1) & 0xFF
         if key == ord("r"):
-            canvas = numpy.zeros((400, 400))
+            canvas = numpy.zeros((280, 280), dtype="uint8")
+            prevx, prevy = None, None
         if key == ord("p"):
-            image = cv2.blur(canvas, (15, 15), 0)
-            image = cv2.resize(image, (28, 28), cv2.INTER_NEAREST)
+            image = cv2.resize(canvas, (28, 28), cv2.INTER_LINEAR)
             prediction = (
                 model(np.array(image[None, None]).astype("float64") / 255.0)
                 ._array[0]
