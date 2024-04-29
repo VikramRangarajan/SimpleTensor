@@ -206,7 +206,7 @@ def show_graph(root):
     Returns a graphviz visualization of the computation graph,
     starting at this root Tensor. It shows all the Tensors, the Tensors' names,
     shapes, dtypes, and all operations used to create all the Tensors in the
-    graph.
+    graph. If the Tensor has size 1, then it will print the scalar within.
 
     Parameters
     ----------
@@ -235,7 +235,10 @@ def show_graph(root):
     while queue != []:
         node, rank = queue.pop()
         name = node.name
-        tensor_desc = f"{name}\\nShape: {node.shape}\\nDtype: {node.dtype}"
+        if node.size == 1:
+            tensor_desc = f"{name}\\nShape: {node.shape}\\nDtype: {node.dtype}\\nValue: {node._array.item():.3f}"
+        else:
+            tensor_desc = f"{name}\\nShape: {node.shape}\\nDtype: {node.dtype}"
         if rank % 3 == 2:
             with dot.subgraph() as sg:
                 sg.node(name, tensor_desc, shape="record")

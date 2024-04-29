@@ -242,12 +242,14 @@ class Model:
         self.K = Tensor(
             K_rand,
             dtype="float64",
+            name="Conv Weights",
         )
 
         conv_bias_rand = self.rng.standard_normal((kwargs["conv_filters"], 1, 1)) / 3
         self.conv_bias = Tensor(
             conv_bias_rand,
             dtype="float64",
+            name="Conv Bias",
         )
 
         # First dense layer
@@ -262,6 +264,7 @@ class Model:
         self.W1 = Tensor(
             W1_rand,
             dtype="float64",
+            name="Dense Weights 1",
         )
 
         b1_rand = (
@@ -273,6 +276,7 @@ class Model:
         self.b1 = Tensor(
             b1_rand,
             dtype="float64",
+            name="Dense Bias 1",
         )
 
         # Second dense layer
@@ -283,12 +287,14 @@ class Model:
         self.W2 = Tensor(
             W2_rand,
             dtype="float64",
+            name="Dense Weights 2",
         )
 
         b2_rand = self.rng.standard_normal(10) / kwargs["dense_neurons"] ** 0.5
         self.b2 = Tensor(
             b2_rand,
             dtype="float64",
+            name="Dense Bias 2",
         )
 
         # Trainable parameters
@@ -296,12 +302,14 @@ class Model:
 
     def __call__(self, batch):
         Y = Tensor(batch)
+        Y.name = "inputs"
         Y = Y.convolve(self.K) + self.conv_bias  # Conv layer
         Y = Y.relu()  # Relu
         Y = Y.reshape((Y.shape[0], -1))  # Flatten output of conv layer
         Y = Y @ self.W1 + self.b1  # Dense layer
         Y = Y.relu()  # Relu
         Y = Y @ self.W2 + self.b2  # Final dense layer
+        Y.name = "logits"
         Y = softmax(Y, axis=(1,))  # Softmax
         return Y
 
