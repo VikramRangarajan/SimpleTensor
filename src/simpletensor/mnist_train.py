@@ -5,14 +5,7 @@ from urllib.request import urlretrieve
 import os
 import argparse
 from pathlib import Path
-import importlib
-
-if importlib.util.find_spec("matplotlib.pyplot"):
-    plt = importlib.import_module("matplotlib.pyplot")
-if importlib.util.find_spec("cv2"):
-    cv2 = importlib.import_module("cv2")
-if importlib.util.find_spec("tqdm"):
-    tqdm = importlib.import_module("tqdm")
+import tqdm
 
 
 def parse_args():
@@ -151,6 +144,9 @@ def load_data(location):
 
 
 def main(*args):
+    import cv2
+    import matplotlib.pyplot as plt
+
     """
     Runs everything
     """

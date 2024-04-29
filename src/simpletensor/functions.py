@@ -221,15 +221,27 @@ def show_graph(root):
     """
     import graphviz
 
-    dot = graphviz.Digraph("Graph", graph_attr={"rankdir": "LR"})
-    queue = [root]
+    dot = graphviz.Digraph(
+        "Graph",
+        graph_attr={
+            "rankdir": "TB",
+            "splines": "ortho",
+        },
+    )
+    nodes = []
+    queue = [(root, 0)]
     visited = set()
     i = 0
     while queue != []:
-        node = queue.pop()
+        node, rank = queue.pop()
         name = node.name
         tensor_desc = f"{name}\\nShape: {node.shape}\\nDtype: {node.dtype}"
-        dot.node(name, tensor_desc, shape="record")
+        if rank % 3 == 2:
+            with dot.subgraph() as sg:
+                sg.node(name, tensor_desc, shape="record")
+        else:
+            dot.node(name, tensor_desc, shape="record")
+        nodes.append((name, rank))
         if str(node._op) != "":
             dot.node(f"{str(node._op)}_{i}", str(node._op), shape="circle")
             dot.edge(f"{str(node._op)}_{i}", name)
@@ -237,7 +249,7 @@ def show_graph(root):
             dot.edge(child.name, f"{str(node._op)}_{i}")
         for parent in node._parents:
             if parent not in visited:
-                queue.append(parent)
+                queue.append((parent, rank + 1))
                 visited.add(parent)
         i += 1
     return dot

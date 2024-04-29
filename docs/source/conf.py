@@ -29,6 +29,10 @@ extensions = [
     "myst_nb",
 ]
 code_url = "https://github.com/VikramRangarajan/simpletensor/tree/main"
+nb_execution_mode = "off"
+myst_enable_extensions = [
+    "dollarmath",
+]
 
 
 def linkcode_resolve(domain, info):

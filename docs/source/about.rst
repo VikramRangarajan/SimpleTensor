@@ -15,6 +15,6 @@ Note: The gradient arrays are *not* Tensor's, and are just numpy arrays.
 In addition, SimpleTensor has GPU support via CuPy, which acts as a drop in
 substitution for numpy, except it allows us to have arrays in GPU VRAM and
 GPU accelerated operations. Note that SimpleTensor requires CuPy >=12.0.0,
-as CuPy did not implement ufunc.at until version 13.0.0 (this is required
+as CuPy did not implement ufunc.at until version 12.0.0 (this is required
 for the differentiable indexing operation, which is used in max, min, and
 softmax).
