@@ -131,7 +131,7 @@ class Tensor:
         Tensor
             Sum of both inputs
         """
-        other = astensor(other)
+        other = astensor(other, dtype=self.dtype)
         res = Tensor(self._array + other._array)
         if Tensor.grad_enabled:
             res._op = Op.ADD
@@ -161,7 +161,7 @@ class Tensor:
         Tensor
             Subtraction of both inputs
         """
-        other = astensor(other)
+        other = astensor(other, dtype=self.dtype)
         res = Tensor(self._array - other._array)
         if Tensor.grad_enabled:
             res._op = Op.SUB
@@ -193,7 +193,7 @@ class Tensor:
         Tensor
             Multiplication (Hadamard product) of two tensors
         """
-        other = astensor(other)
+        other = astensor(other, dtype=self.dtype)
         res = Tensor(self._array * other._array)
         if Tensor.grad_enabled:
             res._op = Op.MUL
@@ -235,7 +235,7 @@ class Tensor:
         Tensor
             Matrix product of two input arrays
         """
-        other = astensor(other)
+        other = astensor(other, dtype=self.dtype)
 
         prepended = self.ndim == 1
         appended = other.ndim == 1
@@ -295,7 +295,7 @@ class Tensor:
         return res
 
     def __rmatmul__(self, other):
-        other = astensor(other)
+        other = astensor(other, dtype=self.dtype)
         return other @ self
 
     __imatmul__ = __matmul__
@@ -314,7 +314,7 @@ class Tensor:
         Tensor
             Result tensor of A**B
         """
-        other = astensor(other)
+        other = astensor(other, dtype=self.dtype)
         res = Tensor(self._array**other._array)
         if Tensor.grad_enabled:
             res._op = Op.POW
@@ -337,7 +337,7 @@ class Tensor:
         return res
 
     def __rpow__(self, other):
-        other = astensor(other)
+        other = astensor(other, dtype=self.dtype)
         return other**self
 
     __ipow__ = __pow__
@@ -380,7 +380,7 @@ class Tensor:
         Tensor
             Output. Shape: (batch_size, num_filters, ...)
         """
-        kernel = astensor(kernel)
+        kernel = astensor(kernel, dtype=self.dtype)
         res = Tensor(
             np.squeeze(
                 signal.fftconvolve(
@@ -445,7 +445,7 @@ class Tensor:
         Tensor
             Result of exponentiation
         """
-        res = astensor(np.exp(self._array))
+        res = astensor(np.exp(self._array), dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.EXP
             res._parents = [self]
@@ -471,7 +471,7 @@ class Tensor:
             Result of log operation
         """
 
-        res = astensor(np.log(self._array) / np.log(n))
+        res = astensor(np.log(self._array) / np.log(n), dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.LOG
             res._parents = [self]
@@ -498,7 +498,7 @@ class Tensor:
         """
 
         axis = axis or range(self.ndim - 1, -1, -1)
-        res = astensor(np.transpose(self._array, axes=axis))
+        res = astensor(np.transpose(self._array, axes=axis), dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.T
             res._parents = [self]
@@ -525,7 +525,7 @@ class Tensor:
         """
 
         axis = axis or tuple(i for i, dim in enumerate(self._array.shape) if dim == 1)
-        res = astensor(np.squeeze(self._array, axis=axis))
+        res = astensor(np.squeeze(self._array, axis=axis), dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.SQUEEZE
             res._parents = [self]
@@ -552,7 +552,7 @@ class Tensor:
         """
 
         axis = axis or (range(self.ndim))
-        res = astensor(np.flip(self._array, axis=axis))
+        res = astensor(np.flip(self._array, axis=axis), dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.FLIP
             res._parents = [self]
@@ -579,7 +579,7 @@ class Tensor:
         """
 
         axis = axis or ()
-        res = astensor(np.expand_dims(self._array, axis=axis))
+        res = astensor(np.expand_dims(self._array, axis=axis), dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.EXPAND_DIMS
             res._parents = [self]
@@ -605,7 +605,7 @@ class Tensor:
             Result of reshape
         """
 
-        res = astensor(np.reshape(self._array, shape))
+        res = astensor(np.reshape(self._array, shape), dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.RESHAPE
             res._parents = [self]
@@ -628,7 +628,7 @@ class Tensor:
 
         res_array = np.array(self._array)
         res_array[res_array < 0] = 0
-        res = astensor(res_array)
+        res = astensor(res_array, dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.RELU
             res._parents = [self]
@@ -653,7 +653,7 @@ class Tensor:
         Tensor
             Result of Tensor indexing
         """
-        res = astensor(self._array[index])  # Copy will be made of underlying np array
+        res = astensor(self._array[index], dtype=self.dtype)  # Copy will be made of underlying np array
         if Tensor.grad_enabled:
             res._op = Op.INDEX
             res._parents = [self]
@@ -687,7 +687,7 @@ class Tensor:
         Tensor
             Result of sum operation over axes
         """
-        res = Tensor(self._array.sum(axis=axis, keepdims=keepdims))
+        res = astensor(self._array.sum(axis=axis, keepdims=keepdims), dtype=self.dtype)
         if Tensor.grad_enabled:
             res._op = Op.SUM
             res._parents = [self]

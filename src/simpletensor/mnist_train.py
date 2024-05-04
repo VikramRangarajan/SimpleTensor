@@ -7,6 +7,9 @@ import argparse
 from pathlib import Path
 import tqdm
 
+DTYPE = "float64"
+np.random.seed(123)
+
 
 def parse_args():
     """
@@ -35,7 +38,7 @@ def parse_args():
     parser.add_argument(
         "--lr",
         type=float,
-        default=0.01,
+        default=0.001,
         help="learning rate of optimizer",
     )
     parser.add_argument(
@@ -60,6 +63,13 @@ def parse_args():
         help="number of epochs to train",
     )
     parser.add_argument(
+        "-d",
+        "--dropout",
+        type=float,
+        default=0.3,
+        help="Dropout proportion",
+    )
+    parser.add_argument(
         "-g",
         "--gpu",
         default=True,
@@ -81,12 +91,13 @@ def parse_args():
     CONV_FILTERS = args.conv_filters
     BATCH_SIZE = args.batch_size
     EPOCHS = args.epochs
+    DROPOUT = args.dropout
     USE_GPU = args.gpu
     if USE_GPU:
         use_cupy()
     else:
         use_numpy()
-    return PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS
+    return PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS, DROPOUT
 
 
 class TqdmProgBar(tqdm.tqdm):
@@ -135,10 +146,10 @@ def load_data(location):
     """
     data = np.load(location)
     return (
-        data["x_train"].reshape((60000, 1, 28, 28)).astype("float64") / 255.0,
+        data["x_train"].reshape((60000, 1, 28, 28)).astype(DTYPE) / 255.0,
         data["y_train"],
     ), (
-        data["x_test"].reshape((10000, 1, 28, 28)).astype("float64") / 255.0,
+        data["x_test"].reshape((10000, 1, 28, 28)).astype(DTYPE) / 255.0,
         data["y_test"],
     )
 
@@ -150,7 +161,9 @@ def main(*args):
     """
     Runs everything
     """
-    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS = args or parse_args()
+    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS, DROPOUT = (
+        args or parse_args()
+    )
     os.makedirs(PATH, exist_ok=True)
     data_loc = os.path.join(PATH, "mnist.npz")
 
@@ -158,17 +171,27 @@ def main(*args):
     (X_train, y_train_categorical), (X_test, y_test_categorical) = load_data(data_loc)
 
     # Convert to one-hot encoded vectors
-    y_train = np.zeros((60000, 10), dtype="float64")
-    y_test = np.zeros((10000, 10), dtype="float64")
+    y_train = np.zeros((60000, 10), dtype=DTYPE)
+    y_test = np.zeros((10000, 10), dtype=DTYPE)
     y_train[range(60000), y_train_categorical] = 1
     y_test[range(10000), y_test_categorical] = 1
-    model = Model(dense_neurons=DENSE_NEURONS, conv_filters=CONV_FILTERS, lr=LR)
-    history = model.fit(
-        train_data=(X_train, y_train),
-        test_data=(X_test, y_test),
-        epochs=EPOCHS,
-        batch_size=BATCH_SIZE,
+
+    model = Model(
+        dense_neurons=DENSE_NEURONS,
+        conv_filters=CONV_FILTERS,
+        lr=LR,
+        dropout=DROPOUT,
     )
+    try:
+        model.fit(
+            train_data=(X_train, y_train),
+            test_data=(X_test, y_test),
+            epochs=EPOCHS,
+            batch_size=BATCH_SIZE,
+        )
+    except KeyboardInterrupt:
+        pass
+    history = model.history
     for metric in ["acc", "loss"]:
         for data in history.keys():
             if metric in data:
@@ -184,6 +207,8 @@ def main(*args):
     canvas = numpy.zeros((280, 280), dtype="uint8")
     drawing = False
     prevx, prevy = None, None
+
+    model.eval()
 
     def draw(event, x, y, flags, params):
         nonlocal drawing, prevx, prevy, canvas
@@ -215,14 +240,13 @@ def main(*args):
         if key == ord("p"):
             image = cv2.resize(canvas, (28, 28), cv2.INTER_LINEAR)
             prediction = (
-                model(np.array(image[None, None]).astype("float64") / 255.0)
+                model(np.array(image[None, None]).astype(DTYPE) / 255.0)
                 ._array[0]
                 .argmax()
             )
             print(prediction)
         if key == ord("q"):
             break
-    cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 
@@ -234,6 +258,8 @@ class Model:
     def __init__(self, **kwargs):
         self.rng = np.random.default_rng(seed=123)
         self.lr = kwargs["lr"]
+        self.dropout = kwargs["dropout"]
+        self.training = True
 
         # Use Xavier normal initialization
 
@@ -241,14 +267,14 @@ class Model:
         K_rand = self.rng.standard_normal((kwargs["conv_filters"], 1, 3, 3)) / 3
         self.K = Tensor(
             K_rand,
-            dtype="float64",
+            dtype=DTYPE,
             name="Conv Weights",
         )
 
         conv_bias_rand = self.rng.standard_normal((kwargs["conv_filters"], 1, 1)) / 3
         self.conv_bias = Tensor(
             conv_bias_rand,
-            dtype="float64",
+            dtype=DTYPE,
             name="Conv Bias",
         )
 
@@ -263,7 +289,7 @@ class Model:
         )
         self.W1 = Tensor(
             W1_rand,
-            dtype="float64",
+            dtype=DTYPE,
             name="Dense Weights 1",
         )
 
@@ -275,7 +301,7 @@ class Model:
         )
         self.b1 = Tensor(
             b1_rand,
-            dtype="float64",
+            dtype=DTYPE,
             name="Dense Bias 1",
         )
 
@@ -286,26 +312,52 @@ class Model:
         )
         self.W2 = Tensor(
             W2_rand,
-            dtype="float64",
+            dtype=DTYPE,
             name="Dense Weights 2",
         )
 
         b2_rand = self.rng.standard_normal(10) / kwargs["dense_neurons"] ** 0.5
         self.b2 = Tensor(
             b2_rand,
-            dtype="float64",
+            dtype=DTYPE,
             name="Dense Bias 2",
         )
 
         # Trainable parameters
-        self.parameters = [self.W1, self.b1, self.W2, self.b2]
+        self.parameters = [self.K, self.conv_bias, self.W1, self.b1, self.W2, self.b2]
+        self.adam_m = []
+        self.adam_v = []
+        self.adam_t = 0
+        for param in self.parameters:
+            self.adam_m.append(np.zeros(param.shape, param.dtype))
+            self.adam_v.append(np.zeros(param.shape, param.dtype))
+
+        self.history = {
+            "train_loss": [],
+            "train_acc": [],
+            "val_loss": [],
+            "val_acc": [],
+        }
+
+    def train(self):
+        self.training = True
+
+    def eval(self):
+        self.training = False
 
     def __call__(self, batch):
-        Y = Tensor(batch)
+        Y = Tensor(batch, dtype=DTYPE)
         Y.name = "inputs"
         Y = Y.convolve(self.K) + self.conv_bias  # Conv layer
         Y = Y.relu()  # Relu
         Y = Y.reshape((Y.shape[0], -1))  # Flatten output of conv layer
+        if self.training:
+            dropout = Tensor(
+                np.random.binomial(1, 1 - self.dropout, size=Y.shape),
+                dtype=Y.dtype,
+                name="dropout",
+            )
+            Y *= dropout
         Y = Y @ self.W1 + self.b1  # Dense layer
         Y = Y.relu()  # Relu
         Y = Y @ self.W2 + self.b2  # Final dense layer
@@ -335,12 +387,6 @@ class Model:
         """
         X_train, y_train = train_data
         X_test, y_test = test_data
-        history = {
-            "train_loss": [],
-            "train_acc": [],
-            "val_loss": [],
-            "val_acc": [],
-        }
         for epoch in range(epochs):
             print(f"Epoch {epoch+1} / {epochs}")
             for phase in ["train", "val"]:
@@ -349,9 +395,17 @@ class Model:
                 if phase == "train":
                     X = X_train
                     y = y_train
+                    self.train()
+
+                    # Shuffle Data
+                    shuffle_index = np.random.permutation(np.arange(60000))
+                    X = X[shuffle_index]
+                    y = y[shuffle_index]
                 else:
                     X = X_test
                     y = y_test
+                    self.eval()
+    
                 progbar = tqdm.tqdm(
                     range(0, len(X), batch_size),
                     mininterval=0.25,
@@ -380,18 +434,37 @@ class Model:
                     )
 
                     if phase == "train":
+                        b1 = 0.9
+                        b2 = 0.999
+                        eps = 1e-8
                         # Optimization, the WHOLE point of this automatic differentiation library
                         batch_loss.backward()  # !!!!
-                        for param in self.parameters:
+                        for i in range(len(self.parameters)):
                             # Stochastic Gradient Descent
-                            param._array -= self.lr * param.grad
+                            self.adam_t += 1
+                            self.adam_m[i] = (
+                                b1 * self.adam_m[i] + (1 - b1) * self.parameters[i].grad
+                            )
+                            self.adam_v[i] = (
+                                b2 * self.adam_v[i]
+                                + (1 - b2)
+                                * self.parameters[i].grad
+                                * self.parameters[i].grad
+                            )
+                            adam_m_hat = self.adam_m[i] / (1 - b1**self.adam_t)
+                            adam_v_hat = self.adam_v[i] / (1 - b2**self.adam_t)
+                            self.parameters[i]._array -= (
+                                self.lr * adam_m_hat / (np.sqrt(adam_v_hat) + eps)
+                            )
+
+                            # param._array -= self.lr * param.grad
+
                 epoch_loss /= len(X)
                 epoch_acc /= len(X)
                 print(f"{phase}_loss: {epoch_loss:.6f}, {phase}_acc: {epoch_acc:.6f}")
-                history[f"{phase}_loss"].append(epoch_loss)
-                history[f"{phase}_acc"].append(epoch_acc)
-        return history
+                self.history[f"{phase}_loss"].append(epoch_loss)
+                self.history[f"{phase}_acc"].append(epoch_acc)
 
 
 if __name__ == "__main__":
-    main(Path(".").absolute(), 512, 0.01, 16, 32, 10)
+    main(Path(".").absolute(), 512, 0.01, 16, 32, 10, 0.2)
