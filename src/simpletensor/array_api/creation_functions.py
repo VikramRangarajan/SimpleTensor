@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = [
     "arange",
     "asarray",
@@ -455,7 +456,9 @@ def linspace(
     """
 
 
-def meshgrid(*arrays: array_type, indexing: Literal["xy", "ij"] = "xy") -> List[array_type]:
+def meshgrid(
+    *arrays: array_type, indexing: Literal["xy", "ij"] = "xy"
+) -> List[array_type]:
     """
     Returns coordinate matrices from coordinate vectors.
 

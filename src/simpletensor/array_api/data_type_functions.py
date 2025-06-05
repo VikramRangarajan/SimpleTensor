@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = ["astype", "can_cast", "finfo", "iinfo", "isdtype", "result_type"]
 
 from ._types import (
@@ -13,7 +14,12 @@ from ._types import (
 
 
 def astype(
-    x: array_type, dtype: dtype, /, *, copy: bool = True, device: Optional[device] = None
+    x: array_type,
+    dtype: dtype,
+    /,
+    *,
+    copy: bool = True,
+    device: Optional[device] = None,
 ) -> array_type:
     """
     Copies an array to a specified data type irrespective of :ref:`type-promotion` rules.

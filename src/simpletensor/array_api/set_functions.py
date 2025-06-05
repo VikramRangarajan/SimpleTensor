@@ -1,10 +1,13 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = ["unique_all", "unique_counts", "unique_inverse", "unique_values"]
 
 
 from ._types import Tuple, array_type
 
 
-def unique_all(x: array_type, /) -> Tuple[array_type, array_type, array_type, array_type]:
+def unique_all(
+    x: array_type, /
+) -> Tuple[array_type, array_type, array_type, array_type]:
     """
     Returns the unique elements of an input array ``x``, the first occurring indices for each unique element in ``x``, the indices from the set of unique elements that reconstruct ``x``, and the corresponding counts for each unique element in ``x``.
 

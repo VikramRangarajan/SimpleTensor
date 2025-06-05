@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = ["matmul", "matrix_transpose", "tensordot", "vecdot"]
 
 

@@ -1,6 +1,7 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 from __future__ import annotations
 
-__all__ = ["array_type"]
+__all__ = ["array"]
 
 from ._types import (
     Any,
@@ -152,7 +153,9 @@ class _array:
             Added complex data type support.
         """
 
-    def __add__(self: array_type, other: Union[int, float, complex, array_type], /) -> array_type:
+    def __add__(
+        self: array_type, other: Union[int, float, complex, array_type], /
+    ) -> array_type:
         """
         Calculates the sum for each element of an array instance with the respective element of the array ``other``.
 
@@ -501,7 +504,9 @@ class _array:
               ONE_API = 14
         """
 
-    def __eq__(self: array_type, other: Union[int, float, complex, bool, array_type], /) -> array_type:
+    def __eq__(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self: array_type, other: Union[int, float, complex, bool, array_type], /
+    ) -> array_type:
         r"""
         Computes the truth value of ``self_i == other_i`` for each element of an array instance with the respective element of the array ``other``.
 
@@ -568,7 +573,9 @@ class _array:
             Allowed lazy implementations to error.
         """
 
-    def __floordiv__(self: array_type, other: Union[int, float, array_type], /) -> array_type:
+    def __floordiv__(
+        self: array_type, other: Union[int, float, array_type], /
+    ) -> array_type:
         """
         Evaluates ``self_i // other_i`` for each element of an array instance with the respective element of the array ``other``.
 
@@ -904,7 +911,9 @@ class _array:
             Added complex data type support.
         """
 
-    def __mod__(self: array_type, other: Union[int, float, array_type], /) -> array_type:
+    def __mod__(
+        self: array_type, other: Union[int, float, array_type], /
+    ) -> array_type:
         """
         Evaluates ``self_i % other_i`` for each element of an array instance with the respective element of the array ``other``.
 
@@ -927,7 +936,9 @@ class _array:
         -   For input arrays which promote to an integer data type, the result of division by zero is unspecified and thus implementation-defined.
         """
 
-    def __mul__(self: array_type, other: Union[int, float, complex, array_type], /) -> array_type:
+    def __mul__(
+        self: array_type, other: Union[int, float, complex, array_type], /
+    ) -> array_type:
         r"""
         Calculates the product for each element of an array instance with the respective element of the array ``other``.
 
@@ -955,7 +966,9 @@ class _array:
             Added complex data type support.
         """
 
-    def __ne__(self: array_type, other: Union[int, float, complex, bool, array_type], /) -> array_type:
+    def __ne__(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self: array_type, other: Union[int, float, complex, bool, array_type], /
+    ) -> array_type:
         """
         Computes the truth value of ``self_i != other_i`` for each element of an array instance with the respective element of the array ``other``.
 
@@ -1060,7 +1073,9 @@ class _array:
             Added complex data type support.
         """
 
-    def __pow__(self: array_type, other: Union[int, float, complex, array_type], /) -> array_type:
+    def __pow__(
+        self: array_type, other: Union[int, float, complex, array_type], /
+    ) -> array_type:
         r"""
         Calculates an implementation-dependent approximation of exponentiation by raising each element (the base) of an array instance to the power of ``other_i`` (the exponent), where ``other_i`` is the corresponding element of the array ``other``.
 
@@ -1112,7 +1127,11 @@ class _array:
     def __setitem__(
         self: array_type,
         key: Union[
-            int, slice, ellipsis, Tuple[Union[int, slice, ellipsis, array_type], ...], array_type
+            int,
+            slice,
+            ellipsis,
+            Tuple[Union[int, slice, ellipsis, array_type], ...],
+            array_type,
         ],
         value: Union[int, float, complex, bool, array_type],
         /,
@@ -1142,7 +1161,9 @@ class _array:
         -   When ``value`` is an ``array`` of a different data type than ``self``, how values are cast to the data type of ``self`` is implementation defined.
         """
 
-    def __sub__(self: array_type, other: Union[int, float, complex, array_type], /) -> array_type:
+    def __sub__(
+        self: array_type, other: Union[int, float, complex, array_type], /
+    ) -> array_type:
         """
         Calculates the difference for each element of an array instance with the respective element of the array ``other``.
 
@@ -1168,7 +1189,9 @@ class _array:
             Added complex data type support.
         """
 
-    def __truediv__(self: array_type, other: Union[int, float, complex, array_type], /) -> array_type:
+    def __truediv__(
+        self: array_type, other: Union[int, float, complex, array_type], /
+    ) -> array_type:
         r"""
         Evaluates ``self_i / other_i`` for each element of an array instance with the respective element of the array ``other``.
 
@@ -1251,4 +1274,4 @@ class _array:
         """
 
 
-# array = _array
+array = _array

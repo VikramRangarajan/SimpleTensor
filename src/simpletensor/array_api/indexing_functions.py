@@ -1,9 +1,12 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = ["take", "take_along_axis"]
 
 from ._types import Optional, array_type
 
 
-def take(x: array_type, indices: array_type, /, *, axis: Optional[int] = None) -> array_type:
+def take(
+    x: array_type, indices: array_type, /, *, axis: Optional[int] = None
+) -> array_type:
     """
     Returns elements of an array along an axis.
 
@@ -43,7 +46,9 @@ def take(x: array_type, indices: array_type, /, *, axis: Optional[int] = None) -
     """
 
 
-def take_along_axis(x: array_type, indices: array_type, /, *, axis: int = -1) -> array_type:
+def take_along_axis(
+    x: array_type, indices: array_type, /, *, axis: int = -1
+) -> array_type:
     """
     Returns elements from an array at the one-dimensional indices specified by ``indices`` along a provided ``axis``.
 

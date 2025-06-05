@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none, reportInvalidTypeForm=none
 __all__ = [
     "cholesky",
     "cross",
@@ -25,7 +26,7 @@ __all__ = [
 ]
 
 
-from ._types import Literal, Optional, Tuple, Union, Sequence, array_type, dtype
+from ._types import Literal, Optional, Sequence, Tuple, Union, array_type, dtype
 from .constants import inf
 
 
@@ -386,7 +387,9 @@ def matrix_power(x: array_type, n: int, /) -> array_type:
     """
 
 
-def matrix_rank(x: array_type, /, *, rtol: Optional[Union[float, array_type]] = None) -> array_type:
+def matrix_rank(
+    x: array_type, /, *, rtol: Optional[Union[float, array_type]] = None
+) -> array_type:
     """
     Returns the rank (i.e., number of non-zero singular values) of a matrix (or a stack of matrices).
 
@@ -440,7 +443,9 @@ def outer(x1: array_type, x2: array_type, /) -> array_type:
     """
 
 
-def pinv(x: array_type, /, *, rtol: Optional[Union[float, array_type]] = None) -> array_type:
+def pinv(
+    x: array_type, /, *, rtol: Optional[Union[float, array_type]] = None
+) -> array_type:
     r"""
     Returns the (Moore-Penrose) pseudo-inverse of a matrix (or a stack of matrices) ``x``.
 
@@ -641,7 +646,9 @@ def solve(x1: array_type, x2: array_type, /) -> array_type:
     """
 
 
-def svd(x: array_type, /, *, full_matrices: bool = True) -> Tuple[array_type, array_type, array_type]:
+def svd(
+    x: array_type, /, *, full_matrices: bool = True
+) -> Tuple[array_type, array_type, array_type]:
     r"""
     Returns a singular value decomposition (SVD) of a matrix (or a stack of matrices) ``x``.
 
@@ -730,7 +737,9 @@ def tensordot(
     """Alias for :func:`~array_api.tensordot`."""
 
 
-def trace(x: array_type, /, *, offset: int = 0, dtype: Optional[dtype] = None) -> array_type:
+def trace(
+    x: array_type, /, *, offset: int = 0, dtype: Optional[dtype] = None
+) -> array_type:
     """
     Returns the sum along the specified diagonals of a matrix (or a stack of matrices) ``x``.
 

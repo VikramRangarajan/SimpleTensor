@@ -1,3 +1,4 @@
+# pyright: reportInvalidTypeVarUse=none
 """
 Types for type annotations used in the array API standard.
 
@@ -67,7 +68,7 @@ class finfo_object:
     max: float
     min: float
     smallest_normal: float
-    dtype: dtype
+    dtype: dtype  # pyright: ignore[reportGeneralTypeIssues]
 
 
 @dataclass
@@ -77,7 +78,7 @@ class iinfo_object:
     bits: int
     max: int
     min: int
-    dtype: dtype
+    dtype: dtype  # pyright: ignore[reportGeneralTypeIssues]
 
 
 _T_co = TypeVar("_T_co", covariant=True)

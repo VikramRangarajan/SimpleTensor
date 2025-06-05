@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = [
     "broadcast_arrays",
     "broadcast_to",
@@ -57,7 +58,10 @@ def broadcast_to(x: array_type, /, shape: Tuple[int, ...]) -> array_type:
 
 
 def concat(
-    arrays: Union[Tuple[array_type, ...], List[array_type]], /, *, axis: Optional[int] = 0
+    arrays: Union[Tuple[array_type, ...], List[array_type]],
+    /,
+    *,
+    axis: Optional[int] = 0,
 ) -> array_type:
     """
     Joins a sequence of arrays along an existing axis.
@@ -102,7 +106,9 @@ def expand_dims(x: array_type, /, *, axis: int = 0) -> array_type:
     """
 
 
-def flip(x: array_type, /, *, axis: Optional[Union[int, Tuple[int, ...]]] = None) -> array_type:
+def flip(
+    x: array_type, /, *, axis: Optional[Union[int, Tuple[int, ...]]] = None
+) -> array_type:
     """
     Reverses the order of elements in an array along the given axis. The shape of the array must be preserved.
 
@@ -298,7 +304,9 @@ def squeeze(x: array_type, /, axis: Union[int, Tuple[int, ...]]) -> array_type:
     """
 
 
-def stack(arrays: Union[Tuple[array_type, ...], List[array_type]], /, *, axis: int = 0) -> array_type:
+def stack(
+    arrays: Union[Tuple[array_type, ...], List[array_type]], /, *, axis: int = 0
+) -> array_type:
     """
     Joins a sequence of arrays along a new axis.
 

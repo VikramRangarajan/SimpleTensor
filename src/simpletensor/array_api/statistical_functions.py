@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = [
     "cumulative_sum",
     "cumulative_prod",

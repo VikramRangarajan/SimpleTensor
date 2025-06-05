@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = [
     "fft",
     "ifft",
@@ -647,7 +648,9 @@ def rfftfreq(
     """
 
 
-def fftshift(x: array_type, /, *, axes: Optional[Union[int, Sequence[int]]] = None) -> array_type:
+def fftshift(
+    x: array_type, /, *, axes: Optional[Union[int, Sequence[int]]] = None
+) -> array_type:
     """
     Shifts the zero-frequency component to the center of the spectrum.
 

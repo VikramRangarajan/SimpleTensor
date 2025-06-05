@@ -1,10 +1,13 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = ["argmax", "argmin", "count_nonzero", "nonzero", "searchsorted", "where"]
 
 
 from ._types import Optional, Tuple, Literal, Union, array_type
 
 
-def argmax(x: array_type, /, *, axis: Optional[int] = None, keepdims: bool = False) -> array_type:
+def argmax(
+    x: array_type, /, *, axis: Optional[int] = None, keepdims: bool = False
+) -> array_type:
     """
     Returns the indices of the maximum values along a specified axis.
 
@@ -29,7 +32,9 @@ def argmax(x: array_type, /, *, axis: Optional[int] = None, keepdims: bool = Fal
     """
 
 
-def argmin(x: array_type, /, *, axis: Optional[int] = None, keepdims: bool = False) -> array_type:
+def argmin(
+    x: array_type, /, *, axis: Optional[int] = None, keepdims: bool = False
+) -> array_type:
     """
     Returns the indices of the minimum values along a specified axis.
 

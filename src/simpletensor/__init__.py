@@ -15,7 +15,7 @@ else:
     use_numpy()
 
 
-from .array_api import *
+from .array_api import *  # pyright: ignore[reportReturnType, reportInvalidTypeVarUse]
 from .array_backend import *
 from .functions import *
 from .grad_manager import *

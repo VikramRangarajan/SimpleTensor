@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none
 __all__ = ["__eq__"]
 
 

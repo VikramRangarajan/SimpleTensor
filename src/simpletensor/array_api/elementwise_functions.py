@@ -1,3 +1,4 @@
+# pyright: reportReturnType=none, reportInvalidTypeVarUse=none
 __all__ = [
     "abs",
     "acos",
@@ -273,7 +274,9 @@ def acosh(x: array_type, /) -> array_type:
 
 
 def add(
-    x1: Union[array_type, int, float, complex], x2: Union[array_type, int, float, complex], /
+    x1: Union[array_type, int, float, complex],
+    x2: Union[array_type, int, float, complex],
+    /,
 ) -> array_type:
     """
     Calculates the sum for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
@@ -521,7 +524,9 @@ def atan(x: array_type, /) -> array_type:
     """
 
 
-def atan2(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def atan2(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     """
     Calculates an implementation-dependent approximation of the inverse tangent of the quotient ``x1/x2``, having domain ``[-infinity, +infinity] x [-infinity, +infinity]`` (where the ``x`` notation denotes the set of ordered pairs of elements ``(x1_i, x2_i)``) and codomain ``[-π, +π]``, for each pair of elements ``(x1_i, x2_i)`` of the input arrays ``x1`` and ``x2``, respectively. Each element-wise result is expressed in radians.
 
@@ -651,7 +656,9 @@ def atanh(x: array_type, /) -> array_type:
     """
 
 
-def bitwise_and(x1: Union[array_type, int, bool], x2: Union[array_type, int, bool], /) -> array_type:
+def bitwise_and(
+    x1: Union[array_type, int, bool], x2: Union[array_type, int, bool], /
+) -> array_type:
     """
     Computes the bitwise AND of the underlying binary representation of each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -677,7 +684,9 @@ def bitwise_and(x1: Union[array_type, int, bool], x2: Union[array_type, int, boo
     """
 
 
-def bitwise_left_shift(x1: Union[array_type, int], x2: Union[array_type, int], /) -> array_type:
+def bitwise_left_shift(
+    x1: Union[array_type, int], x2: Union[array_type, int], /
+) -> array_type:
     """
     Shifts the bits of each element ``x1_i`` of the input array ``x1`` to the left by appending ``x2_i`` (i.e., the respective element in the input array ``x2``) zeros to the right of ``x1_i``.
 
@@ -719,7 +728,9 @@ def bitwise_invert(x: array_type, /) -> array_type:
     """
 
 
-def bitwise_or(x1: Union[array_type, int, bool], x2: Union[array_type, int, bool], /) -> array_type:
+def bitwise_or(
+    x1: Union[array_type, int, bool], x2: Union[array_type, int, bool], /
+) -> array_type:
     """
     Computes the bitwise OR of the underlying binary representation of each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -745,7 +756,9 @@ def bitwise_or(x1: Union[array_type, int, bool], x2: Union[array_type, int, bool
     """
 
 
-def bitwise_right_shift(x1: Union[array_type, int], x2: Union[array_type, int], /) -> array_type:
+def bitwise_right_shift(
+    x1: Union[array_type, int], x2: Union[array_type, int], /
+) -> array_type:
     """
     Shifts the bits of each element ``x1_i`` of the input array ``x1`` to the right according to the respective element ``x2_i`` of the input array ``x2``.
 
@@ -774,7 +787,9 @@ def bitwise_right_shift(x1: Union[array_type, int], x2: Union[array_type, int], 
     """
 
 
-def bitwise_xor(x1: Union[array_type, int, bool], x2: Union[array_type, int, bool], /) -> array_type:
+def bitwise_xor(
+    x1: Union[array_type, int, bool], x2: Union[array_type, int, bool], /
+) -> array_type:
     """
     Computes the bitwise XOR of the underlying binary representation of each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -921,7 +936,9 @@ def conj(x: array_type, /) -> array_type:
     """
 
 
-def copysign(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def copysign(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     r"""
     Composes a floating-point value with the magnitude of ``x1_i`` and the sign of ``x2_i`` for each element of the input array ``x1``.
 
@@ -1078,7 +1095,9 @@ def cosh(x: array_type, /) -> array_type:
 
 
 def divide(
-    x1: Union[array_type, int, float, complex], x2: Union[array_type, int, float, complex], /
+    x1: Union[array_type, int, float, complex],
+    x2: Union[array_type, int, float, complex],
+    /,
 ) -> array_type:
     r"""
     Calculates the division of each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
@@ -1436,7 +1455,9 @@ def floor_divide(
     """
 
 
-def greater(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def greater(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     """
     Computes the truth value of ``x1_i > x2_i`` for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -1500,7 +1521,9 @@ def greater_equal(
     """
 
 
-def hypot(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def hypot(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     r"""
     Computes the square root of the sum of squares for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -1678,7 +1701,9 @@ def isnan(x: array_type, /) -> array_type:
     """
 
 
-def less(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def less(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     """
     Computes the truth value of ``x1_i < x2_i`` for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -1709,7 +1734,9 @@ def less(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
     """
 
 
-def less_equal(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def less_equal(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     """
     Computes the truth value of ``x1_i <= x2_i`` for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -1948,7 +1975,9 @@ def log10(x: array_type, /) -> array_type:
     """
 
 
-def logaddexp(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def logaddexp(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     """
     Calculates the logarithm of the sum of exponentiations ``log(exp(x1) + exp(x2))`` for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -1982,7 +2011,9 @@ def logaddexp(x1: Union[array_type, int, float], x2: Union[array_type, int, floa
     """
 
 
-def logical_and(x1: Union[array_type, bool], x2: Union[array_type, bool], /) -> array_type:
+def logical_and(
+    x1: Union[array_type, bool], x2: Union[array_type, bool], /
+) -> array_type:
     """
     Computes the logical AND for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -2030,7 +2061,9 @@ def logical_not(x: array_type, /) -> array_type:
     """
 
 
-def logical_or(x1: Union[array_type, bool], x2: Union[array_type, bool], /) -> array_type:
+def logical_or(
+    x1: Union[array_type, bool], x2: Union[array_type, bool], /
+) -> array_type:
     """
     Computes the logical OR for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -2059,7 +2092,9 @@ def logical_or(x1: Union[array_type, bool], x2: Union[array_type, bool], /) -> a
     """
 
 
-def logical_xor(x1: Union[array_type, bool], x2: Union[array_type, bool], /) -> array_type:
+def logical_xor(
+    x1: Union[array_type, bool], x2: Union[array_type, bool], /
+) -> array_type:
     """
     Computes the logical XOR for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
 
@@ -2088,7 +2123,9 @@ def logical_xor(x1: Union[array_type, bool], x2: Union[array_type, bool], /) -> 
     """
 
 
-def maximum(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def maximum(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     r"""
     Computes the maximum value for each element ``x1_i`` of the input array ``x1`` relative to the respective element ``x2_i`` of the input array ``x2``.
 
@@ -2124,7 +2161,9 @@ def maximum(x1: Union[array_type, int, float], x2: Union[array_type, int, float]
     """
 
 
-def minimum(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def minimum(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     r"""
     Computes the minimum value for each element ``x1_i`` of the input array ``x1`` relative to the respective element ``x2_i`` of the input array ``x2``.
 
@@ -2161,7 +2200,9 @@ def minimum(x1: Union[array_type, int, float], x2: Union[array_type, int, float]
 
 
 def multiply(
-    x1: Union[array_type, int, float, complex], x2: Union[array_type, int, float, complex], /
+    x1: Union[array_type, int, float, complex],
+    x2: Union[array_type, int, float, complex],
+    /,
 ) -> array_type:
     r"""
     Calculates the product for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.
@@ -2263,7 +2304,9 @@ def negative(x: array_type, /) -> array_type:
     """
 
 
-def nextafter(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def nextafter(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     """
     Returns the next representable floating-point value for each element ``x1_i`` of the input array ``x1`` in the direction of the respective element ``x2_i`` of the input array ``x2``.
 
@@ -2376,7 +2419,9 @@ def positive(x: array_type, /) -> array_type:
 
 
 def pow(
-    x1: Union[array_type, int, float, complex], x2: Union[array_type, int, float, complex], /
+    x1: Union[array_type, int, float, complex],
+    x2: Union[array_type, int, float, complex],
+    /,
 ) -> array_type:
     r"""
     Calculates an implementation-dependent approximation of exponentiation by raising each element ``x1_i`` (the base) of the input array ``x1`` to the power of ``x2_i`` (the exponent), where ``x2_i`` is the corresponding element of the input array ``x2``.
@@ -2501,7 +2546,9 @@ def reciprocal(x: array_type, /) -> array_type:
     """
 
 
-def remainder(x1: Union[array_type, int, float], x2: Union[array_type, int, float], /) -> array_type:
+def remainder(
+    x1: Union[array_type, int, float], x2: Union[array_type, int, float], /
+) -> array_type:
     """
     Returns the remainder of division for each element ``x1_i`` of the input array ``x1`` and the respective element ``x2_i`` of the input array ``x2``.
 
@@ -2885,7 +2932,9 @@ def sqrt(x: array_type, /) -> array_type:
 
 
 def subtract(
-    x1: Union[array_type, int, float, complex], x2: Union[array_type, int, float, complex], /
+    x1: Union[array_type, int, float, complex],
+    x2: Union[array_type, int, float, complex],
+    /,
 ) -> array_type:
     """
     Calculates the difference for each element ``x1_i`` of the input array ``x1`` with the respective element ``x2_i`` of the input array ``x2``.

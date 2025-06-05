@@ -35,7 +35,7 @@ class Backend(ModuleType):
 np = Backend(importlib.import_module("numpy"))
 fft = Backend(importlib.import_module("scipy.fft"))
 fftpack = Backend(importlib.import_module("scipy.fftpack"))
-linalg = Backend(importlib.import_module("scipy.linalg"))
+linalg = Backend(importlib.import_module("numpy.linalg"))
 ndimage = Backend(importlib.import_module("scipy.ndimage"))
 signal = Backend(importlib.import_module("scipy.signal"))
 
@@ -51,7 +51,7 @@ def use_cupy():
         np.module = importlib.import_module("cupy")
         fft.module = importlib.import_module("cupyx.scipy.fft")
         fftpack.module = importlib.import_module("cupyx.scipy.fftpack")
-        linalg.module = importlib.import_module("cupyx.scipy.linalg")
+        linalg.module = importlib.import_module("cupy.linalg")
         ndimage.module = importlib.import_module("cupyx.scipy.ndimage")
         signal.module = importlib.import_module("cupyx.scipy.signal")
         print("Successfully switched to GPU (CuPy backend)")
