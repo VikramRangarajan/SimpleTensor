@@ -1,6 +1,8 @@
-from .operation import Op
-from .array_backend import np, signal
 import random
+from typing import no_type_check
+
+from .array_backend import DeviceType, cupy, np, numpy, signal
+from .operation import Op
 
 
 class Tensor:
@@ -19,14 +21,22 @@ class Tensor:
 
     grad_enabled = True
 
-    def __init__(self, values, dtype=None, copy=True, name=None):
+    def __init__(
+        self,
+        values,
+        dtype=None,
+        copy=True,
+        device: DeviceType = "cpu",
+        name: str | None = None,
+    ):
         dtype = dtype or np.float64
-        self._array = np.array(values, dtype=dtype, copy=copy)
+        self._array: numpy.ndarray = sequence_to_array(values, dtype, device, copy)
+        self.device: DeviceType = device
 
         # Gives tensor unique name
         if name is None:
             chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            self.name = "".join([random.choice(chars) for _ in range(10)])
+            self.name: str = "".join([random.choice(chars) for _ in range(10)])
         else:
             self.name = name
 
@@ -64,6 +74,17 @@ class Tensor:
 
     def __str__(self):
         return str(self._array)
+
+    @no_type_check
+    def to(self, device: DeviceType) -> "Tensor":
+        if self.device == device:
+            return self
+        if self.device == "cuda" and device == "cpu":
+            _array = self._array.get()
+        elif self.device == "cpu" and device == "cuda":
+            _array = cupy.asarray(self._array)
+        new_tensor = Tensor(_array, self.dtype, copy=True, device=device)
+        return new_tensor
 
     def backward(self, zero_grad=True):
         r"""
@@ -119,7 +140,7 @@ class Tensor:
     convolve
     correlate
     >, <, >=, <=, !=, ==
-    
+
     """
 
     def __add__(self, other):
@@ -131,8 +152,10 @@ class Tensor:
         Tensor
             Sum of both inputs
         """
-        other = astensor(other, dtype=self.dtype)
-        res = Tensor(self._array + other._array)
+        other = astensor(other, dtype=self.dtype, device=self.device)
+        res = Tensor(
+            self._array + other._array, copy=False, dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.ADD
             res._parents = [self, other]
@@ -161,8 +184,10 @@ class Tensor:
         Tensor
             Subtraction of both inputs
         """
-        other = astensor(other, dtype=self.dtype)
-        res = Tensor(self._array - other._array)
+        other = astensor(other, dtype=self.dtype, device=self.device)
+        res = Tensor(
+            self._array - other._array, copy=False, dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.SUB
             res._parents = [self, other]
@@ -193,8 +218,10 @@ class Tensor:
         Tensor
             Multiplication (Hadamard product) of two tensors
         """
-        other = astensor(other, dtype=self.dtype)
-        res = Tensor(self._array * other._array)
+        other = astensor(other, dtype=self.dtype, device=self.device)
+        res = Tensor(
+            self._array * other._array, copy=False, dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.MUL
             res._parents = [self, other]
@@ -235,7 +262,7 @@ class Tensor:
         Tensor
             Matrix product of two input arrays
         """
-        other = astensor(other, dtype=self.dtype)
+        other = astensor(other, dtype=self.dtype, device=self.device)
 
         prepended = self.ndim == 1
         appended = other.ndim == 1
@@ -243,7 +270,9 @@ class Tensor:
         if prepended and appended:
             return (self * other).sum()
 
-        res = Tensor(self._array @ other._array)
+        res = Tensor(
+            self._array @ other._array, copy=False, dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.MATMUL
             res._parents = [self, other]
@@ -295,7 +324,7 @@ class Tensor:
         return res
 
     def __rmatmul__(self, other):
-        other = astensor(other, dtype=self.dtype)
+        other = astensor(other, dtype=self.dtype, device=self.device)
         return other @ self
 
     __imatmul__ = __matmul__
@@ -314,8 +343,10 @@ class Tensor:
         Tensor
             Result tensor of A**B
         """
-        other = astensor(other, dtype=self.dtype)
-        res = Tensor(self._array**other._array)
+        other = astensor(other, dtype=self.dtype, device=self.device)
+        res = Tensor(
+            self._array**other._array, copy=False, dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.POW
             res._parents = [self, other]
@@ -337,7 +368,7 @@ class Tensor:
         return res
 
     def __rpow__(self, other):
-        other = astensor(other, dtype=self.dtype)
+        other = astensor(other, dtype=self.dtype, device=self.device)
         return other**self
 
     __ipow__ = __pow__
@@ -380,7 +411,7 @@ class Tensor:
         Tensor
             Output. Shape: (batch_size, num_filters, ...)
         """
-        kernel = astensor(kernel, dtype=self.dtype)
+        kernel = astensor(kernel, dtype=self.dtype, device=self.device)
         res = Tensor(
             np.squeeze(
                 signal.fftconvolve(
@@ -390,7 +421,10 @@ class Tensor:
                     axes=tuple(range(2, self.ndim + 1)),  # Convolve over only x, y, ...
                 ),
                 axis=2,  # Squeezes out channels dimension
-            )  # Now size of (batch_size, filters, ...)
+            ),  # Now size of (batch_size, filters, ...)
+            copy=False,
+            dtype=self.dtype,
+            device=self.device,
         )
         if Tensor.grad_enabled:
             res._op = Op.CONVOLVE
@@ -445,7 +479,7 @@ class Tensor:
         Tensor
             Result of exponentiation
         """
-        res = astensor(np.exp(self._array), dtype=self.dtype)
+        res = astensor(np.exp(self._array), dtype=self.dtype, device=self.device)
         if Tensor.grad_enabled:
             res._op = Op.EXP
             res._parents = [self]
@@ -471,7 +505,9 @@ class Tensor:
             Result of log operation
         """
 
-        res = astensor(np.log(self._array) / np.log(n), dtype=self.dtype)
+        res = astensor(
+            np.log(self._array) / np.log(n), dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.LOG
             res._parents = [self]
@@ -498,7 +534,9 @@ class Tensor:
         """
 
         axis = axis or range(self.ndim - 1, -1, -1)
-        res = astensor(np.transpose(self._array, axes=axis), dtype=self.dtype)
+        res = astensor(
+            np.transpose(self._array, axes=axis), dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.T
             res._parents = [self]
@@ -525,7 +563,9 @@ class Tensor:
         """
 
         axis = axis or tuple(i for i, dim in enumerate(self._array.shape) if dim == 1)
-        res = astensor(np.squeeze(self._array, axis=axis), dtype=self.dtype)
+        res = astensor(
+            np.squeeze(self._array, axis=axis), dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.SQUEEZE
             res._parents = [self]
@@ -552,7 +592,9 @@ class Tensor:
         """
 
         axis = axis or (range(self.ndim))
-        res = astensor(np.flip(self._array, axis=axis), dtype=self.dtype)
+        res = astensor(
+            np.flip(self._array, axis=axis), dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.FLIP
             res._parents = [self]
@@ -579,7 +621,9 @@ class Tensor:
         """
 
         axis = axis or ()
-        res = astensor(np.expand_dims(self._array, axis=axis), dtype=self.dtype)
+        res = astensor(
+            np.expand_dims(self._array, axis=axis), dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.EXPAND_DIMS
             res._parents = [self]
@@ -605,7 +649,9 @@ class Tensor:
             Result of reshape
         """
 
-        res = astensor(np.reshape(self._array, shape), dtype=self.dtype)
+        res = astensor(
+            np.reshape(self._array, shape), dtype=self.dtype, device=self.device
+        )
         if Tensor.grad_enabled:
             res._op = Op.RESHAPE
             res._parents = [self]
@@ -628,7 +674,7 @@ class Tensor:
 
         res_array = np.array(self._array)
         res_array[res_array < 0] = 0
-        res = astensor(res_array, dtype=self.dtype)
+        res = astensor(res_array, dtype=self.dtype, device=self.device)
         if Tensor.grad_enabled:
             res._op = Op.RELU
             res._parents = [self]
@@ -653,7 +699,9 @@ class Tensor:
         Tensor
             Result of Tensor indexing
         """
-        res = astensor(self._array[index], dtype=self.dtype)  # Copy will be made of underlying np array
+        res = astensor(
+            self._array[index], dtype=self.dtype, device=self.device
+        )  # Copy will be made of underlying np array
         if Tensor.grad_enabled:
             res._op = Op.INDEX
             res._parents = [self]
@@ -687,7 +735,11 @@ class Tensor:
         Tensor
             Result of sum operation over axes
         """
-        res = astensor(self._array.sum(axis=axis, keepdims=keepdims), dtype=self.dtype)
+        res = astensor(
+            self._array.sum(axis=axis, keepdims=keepdims),
+            dtype=self.dtype,
+            device=self.device,
+        )
         if Tensor.grad_enabled:
             res._op = Op.SUM
             res._parents = [self]
@@ -823,7 +875,23 @@ class Tensor:
         return res
 
 
-def astensor(a, dtype=None):
+def sequence_to_array(seq, dtype, device: DeviceType, copy: bool) -> numpy.ndarray:
+    if isinstance(seq, numpy.ndarray):
+        if device != "cpu":
+            arr: numpy.ndarray = cupy.array(seq, dtype=dtype)
+        else:
+            arr = numpy.asarray(seq, dtype, copy=copy)
+    else:
+        if cupy is None and device != "cpu":
+            raise ValueError("CuPy not installed, but requesting a cuda array")
+        if cupy is not None and device == "cpu" and isinstance(seq, cupy.ndarray):
+            arr = seq.get().astype(dtype)
+        else:
+            arr = np.asarray(seq, dtype)
+    return arr
+
+
+def astensor(a, dtype=None, device: DeviceType = "cpu"):
     """
     Converts input to a Tensor
 
@@ -840,9 +908,11 @@ def astensor(a, dtype=None):
         Tensor version of input
     """
     if isinstance(a, Tensor):
+        if a.device != device:
+            a = a.to(device)
         return a
     else:
-        return Tensor(a, dtype)
+        return Tensor(a, dtype, device=device)
 
 
 def _product(x):
@@ -856,14 +926,14 @@ def _setdiff(a, b):
     return tuple(int(elem) for elem in a if elem not in b)
 
 
-def _padded_broadcast_shapes(*shapes, max_ndim=None):
+def _padded_broadcast_shapes(*shapes, max_ndim: int):
     return [(0,) * (max_ndim - len(shape)) + shape for shape in shapes]
 
 
 def _broadcasted_axes(*shapes):
     res_shape = np.broadcast_shapes(*shapes)
     arr_pshapes = _padded_broadcast_shapes(*shapes, max_ndim=len(res_shape))
-    axes = [[(), ()] for _ in shapes]
+    axes: list[list[tuple[int, ...]]] = [[(), ()] for _ in shapes]
     for axis in range(0, len(res_shape)):
         for arr_num in range(len(shapes)):
             if arr_pshapes[arr_num][axis] == 0:

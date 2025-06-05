@@ -1,13 +1,31 @@
 # ruff: noqa: E402, F403
 import importlib
 import warnings
+from importlib import util
+from types import ModuleType
+from typing import Any, Literal
+
+import numpy
+
+try:
+    import cupy  # type: ignore
+
+    get_array_module = cupy.get_array_module
+except Exception:
+    cupy = None
+
+    def get_array_module(*args) -> ModuleType:
+        return numpy
 
 
-class Backend:
+DeviceType = Literal["cpu", "cuda"]
+
+
+class Backend(ModuleType):
     def __init__(self, module):
         self.module = module
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> Any:
         if name == "module":
             return self.module
         else:
@@ -53,5 +71,5 @@ def use_numpy():
         print("Successfully switched to CPU (NumPy backend)")
 
 
-_found_cupy = importlib.util.find_spec("cupy")
-_found_cupyx = importlib.util.find_spec("cupyx")
+_found_cupy = util.find_spec("cupy")
+_found_cupyx = util.find_spec("cupyx")

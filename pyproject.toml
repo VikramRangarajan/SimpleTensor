@@ -12,15 +12,17 @@ authors = [
 description = "Simple Tensor Package with Automatic Differentiation"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.13"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
 ]
-dependencies = ["numpy>=1.19", "scipy>=1.9.0"]
+dependencies = ["numpy>=2", "scipy>=1.9.0"]
 
 [project.optional-dependencies]
 showcase = ["matplotlib", "opencv-python", "tqdm"]
+viz = ["graphviz"]
+gpu = ["cupy-cuda12x>=12.0.0"]
 
 [project.urls]
 Homepage = "https://vikramrangarajan.github.io/SimpleTensor/"
@@ -30,3 +32,14 @@ Repository = "https://github.com/VikramRangarajan/SimpleTensor"
 
 [project.scripts]
 simpletensor-train-mnist = "simpletensor.mnist_train:main"
+
+[dependency-groups]
+dev = ["pyright[nodejs]>=1.1.401", "ruff>=0.11.12"]
+docs = [
+    "myst-nb>=1.2.0",
+    "myst-parser>=4.0.1",
+    "numpydoc>=1.8.0",
+    "pydata-sphinx-theme>=0.16.1",
+    "sphinx>=8.2.3",
+    "tqdm>=4.67.1",
+]

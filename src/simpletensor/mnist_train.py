@@ -1,13 +1,16 @@
-from simpletensor import Tensor, softmax, categorical_cross_entropy, use_cupy, use_numpy
-from simpletensor.array_backend import np
-import numpy  # opencv not compatible with cupy arrays
-from urllib.request import urlretrieve
-import os
 import argparse
+import os
 from pathlib import Path
+from urllib.request import urlretrieve
+
+import numpy  # opencv not compatible with cupy arrays
 import tqdm
 
+from simpletensor import Tensor, categorical_cross_entropy, softmax, use_cupy, use_numpy
+from simpletensor.array_backend import np
+
 DTYPE = "float64"
+DEVICE = "cpu"
 np.random.seed(123)
 
 
@@ -97,7 +100,7 @@ def parse_args():
         use_cupy()
     else:
         use_numpy()
-    return PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS, DROPOUT
+    return PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS, DROPOUT, USE_GPU
 
 
 class TqdmProgBar(tqdm.tqdm):
@@ -155,15 +158,18 @@ def load_data(location):
 
 
 def main(*args):
+    global DEVICE
     import cv2
     import matplotlib.pyplot as plt
 
     """
     Runs everything
     """
-    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS, DROPOUT = (
+    PATH, DENSE_NEURONS, LR, CONV_FILTERS, BATCH_SIZE, EPOCHS, DROPOUT, USE_GPU = (
         args or parse_args()
     )
+    if USE_GPU:
+        DEVICE = "cuda"
     os.makedirs(PATH, exist_ok=True)
     data_loc = os.path.join(PATH, "mnist.npz")
 
@@ -206,11 +212,12 @@ def main(*args):
     cv2.namedWindow("Draw Digit", cv2.WINDOW_NORMAL)
     canvas = numpy.zeros((280, 280), dtype="uint8")
     drawing = False
-    prevx, prevy = None, None
+    prevx: int | None = None
+    prevy: int | None = None
 
     model.eval()
 
-    def draw(event, x, y, flags, params):
+    def draw(event: int, x: int, y: int, flags: int, params):
         nonlocal drawing, prevx, prevy, canvas
         if event == cv2.EVENT_LBUTTONDOWN:
             drawing = True
@@ -219,7 +226,8 @@ def main(*args):
             drawing = False
         elif event == cv2.EVENT_MOUSEMOVE and drawing:
             blank = numpy.zeros((280, 280), dtype="uint8")
-            cv2.line(blank, (prevx, prevy), (x, y), color=255, thickness=28)
+            assert prevx is not None and prevy is not None
+            cv2.line(blank, (prevx, prevy), (x, y), color=[255, 255, 255], thickness=28)
             blank = cv2.blur(blank, (13, 13))
             canvas = canvas | blank
             canvas = cv2.resize(
@@ -238,7 +246,7 @@ def main(*args):
             canvas = numpy.zeros((280, 280), dtype="uint8")
             prevx, prevy = None, None
         if key == ord("p"):
-            image = cv2.resize(canvas, (28, 28), cv2.INTER_LINEAR)
+            image = cv2.resize(canvas, (28, 28), interpolation=cv2.INTER_LINEAR)
             prediction = (
                 model(np.array(image[None, None]).astype(DTYPE) / 255.0)
                 ._array[0]
@@ -269,6 +277,7 @@ class Model:
             K_rand,
             dtype=DTYPE,
             name="Conv Weights",
+            device=DEVICE,
         )
 
         conv_bias_rand = self.rng.standard_normal((kwargs["conv_filters"], 1, 1)) / 3
@@ -276,6 +285,7 @@ class Model:
             conv_bias_rand,
             dtype=DTYPE,
             name="Conv Bias",
+            device=DEVICE,
         )
 
         # First dense layer
@@ -291,6 +301,7 @@ class Model:
             W1_rand,
             dtype=DTYPE,
             name="Dense Weights 1",
+            device=DEVICE,
         )
 
         b1_rand = (
@@ -303,6 +314,7 @@ class Model:
             b1_rand,
             dtype=DTYPE,
             name="Dense Bias 1",
+            device=DEVICE,
         )
 
         # Second dense layer
@@ -314,6 +326,7 @@ class Model:
             W2_rand,
             dtype=DTYPE,
             name="Dense Weights 2",
+            device=DEVICE,
         )
 
         b2_rand = self.rng.standard_normal(10) / kwargs["dense_neurons"] ** 0.5
@@ -321,6 +334,7 @@ class Model:
             b2_rand,
             dtype=DTYPE,
             name="Dense Bias 2",
+            device=DEVICE,
         )
 
         # Trainable parameters
@@ -346,7 +360,7 @@ class Model:
         self.training = False
 
     def __call__(self, batch):
-        Y = Tensor(batch, dtype=DTYPE)
+        Y = Tensor(batch, dtype=DTYPE, device=DEVICE)
         Y.name = "inputs"
         Y = Y.convolve(self.K) + self.conv_bias  # Conv layer
         Y = Y.relu()  # Relu
@@ -388,7 +402,7 @@ class Model:
         X_train, y_train = train_data
         X_test, y_test = test_data
         for epoch in range(epochs):
-            print(f"Epoch {epoch+1} / {epochs}")
+            print(f"Epoch {epoch + 1} / {epochs}")
             for phase in ["train", "val"]:
                 epoch_loss = 0
                 epoch_acc = 0
@@ -405,7 +419,7 @@ class Model:
                     X = X_test
                     y = y_test
                     self.eval()
-    
+
                 progbar = tqdm.tqdm(
                     range(0, len(X), batch_size),
                     mininterval=0.25,
@@ -417,7 +431,9 @@ class Model:
                     batch_labels = y[start_index : start_index + batch_size].copy()
 
                     preds = self(batch_inp)
-                    batch_loss = categorical_cross_entropy(Tensor(batch_labels), preds)
+                    batch_loss = categorical_cross_entropy(
+                        Tensor(batch_labels, device=DEVICE), preds
+                    )
 
                     preds_categorical = preds._array.argmax(1)
                     labels_categorical = batch_labels.argmax(1)

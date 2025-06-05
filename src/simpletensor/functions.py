@@ -1,5 +1,5 @@
-from .tensor import astensor
 from .array_backend import np
+from .tensor import Tensor, astensor
 
 
 def add(a1, a2):
@@ -142,7 +142,7 @@ def relu(a):
     return astensor(a).relu()
 
 
-def softmax(a, axis=None):
+def softmax(a: Tensor, axis=None):
     r"""
     Numerically stable n-dimensional softmax computation over any axes. Converts
     input into valid probability distributions.
@@ -156,7 +156,7 @@ def softmax(a, axis=None):
 
     .. math::
         \text{Let x_stable}(\vec x) = \vec x - \text{max}(\vec x) \\
-        \text{softmax_stable}(\vec x) = 
+        \text{softmax_stable}(\vec x) =
         \frac{e^{\text{x_stable}(\vec x)}}{\sum_{i=1}^n e^{\text{x_stable}(\vec x)_i}}
 
     Parameters
@@ -166,14 +166,13 @@ def softmax(a, axis=None):
     axis : tuple of ints, optional
         Axis over which values should be turned into a valid probability distribution, by default None
 
-    
+
 
     Returns
     -------
     Tensor
         Output of softmax
     """
-    a = astensor(a)
     a_max = a.max(axis=axis, keepdims=True)
     exp_a = (a - a_max).exp()
     return exp_a / exp_a.sum(axis=axis, keepdims=True)
@@ -240,7 +239,10 @@ def show_graph(root):
         else:
             tensor_desc = f"{name}\\nShape: {node.shape}\\nDtype: {node.dtype}"
         if rank % 3 == 2:
-            with dot.subgraph() as sg:
+            subgraph = dot.subgraph()
+            if subgraph is None:
+                raise ValueError()
+            with subgraph as sg:
                 sg.node(name, tensor_desc, shape="record")
         else:
             dot.node(name, tensor_desc, shape="record")

@@ -54,6 +54,8 @@ def linkcode_resolve(domain, info):
 
     try:
         file = inspect.getsourcefile(obj)
+        if file is None:
+            raise ValueError()
         lines = inspect.getsourcelines(obj)
     except TypeError:
         # e.g. object is a typing.Union
