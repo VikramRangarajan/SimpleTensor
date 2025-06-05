@@ -15,6 +15,7 @@ else:
     use_numpy()
 
 
+from .array_api import *
 from .array_backend import *
 from .functions import *
 from .grad_manager import *
