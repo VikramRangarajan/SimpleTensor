@@ -1,0 +1,769 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>simpletensor.functions &#8212; simpletensor 0.0.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=f539c95a"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/simpletensor.functions';</script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="simpletensor.grad_manager" href="simpletensor.grad_manager.html" />
+    <link rel="prev" title="simpletensor.array_backend" href="simpletensor.array_backend.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">SimpleTensor</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../docs.html">
+    Code Docs
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../about.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/VikramRangarajan/simpletensor/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.cs.umd.edu/" title="UMD CS" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://umd-brand.transforms.svdcdn.com/production/uploads/images/logos-formal-seal.jpg?w=1801&h=1801&auto=compress%2Cformat&fit=crop&dm=1651267392&s=81a14f930f7888983f0f8bc10146c0b2" class="icon-link-image" alt="UMD CS"/></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../docs.html">
+    Code Docs
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../about.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/VikramRangarajan/simpletensor/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.cs.umd.edu/" title="UMD CS" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="https://umd-brand.transforms.svdcdn.com/production/uploads/images/logos-formal-seal.jpg?w=1801&h=1801&auto=compress%2Cformat&fit=crop&dm=1651267392&s=81a14f930f7888983f0f8bc10146c0b2" class="icon-link-image" alt="UMD CS"/></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="simpletensor.html">simpletensor</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="simpletensor.array_backend.html">simpletensor.array_backend</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">simpletensor.functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simpletensor.grad_manager.html">simpletensor.grad_manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simpletensor.mnist_train.html">simpletensor.mnist_train</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simpletensor.operation.html">simpletensor.operation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simpletensor.tensor.html">simpletensor.tensor</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../docs.html" class="nav-link">Code Docs</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="simpletensor.html" class="nav-link">simpletensor</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">simpletensor.functions</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-simpletensor.functions">
+<span id="simpletensor-functions"></span><h1>simpletensor.functions<a class="headerlink" href="#module-simpletensor.functions" title="Link to this heading">#</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.add">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L5-L9"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.add" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.__add__" title="simpletensor.tensor.Tensor.__add__"><code class="xref py py-mod docutils literal notranslate"><span class="pre">__add__</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.categorical_cross_entropy">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">categorical_cross_entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L181-L200"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.categorical_cross_entropy" title="Link to this definition">#</a></dt>
+<dd><p>Log loss / cross entropy loss over a batch. Defined as:</p>
+<div class="math notranslate nohighlight">
+\[\text{categorical_cross_entropy}(Y, \hat Y) = -\frac{1}{\text{batch_size}}\sum_{b=1}^{\text{batch_size}} \sum_{i=1}^n Y[b, i] \log_{b}(\hat Y[b, i])\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>y_true</strong><span class="classifier">Tensor</span></dt><dd><p>2D Tensor of shape (batch_size, # features)</p>
+</dd>
+<dt><strong>y_pred</strong><span class="classifier">Tensor</span></dt><dd><p>2D Tensor of shape (batch_size, # features)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>_type_</dt><dd><p>_description_</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.divide">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">divide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L40-L44"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.divide" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.__truediv__" title="simpletensor.tensor.Tensor.__truediv__"><code class="xref py py-mod docutils literal notranslate"><span class="pre">__truediv__</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.exp">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L89-L93"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.exp" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.exp" title="simpletensor.tensor.Tensor.exp"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exp</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.expand_dims">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">expand_dims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L124-L128"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.expand_dims" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.expand_dims" title="simpletensor.tensor.Tensor.expand_dims"><code class="xref py py-mod docutils literal notranslate"><span class="pre">expand_dims</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.flip">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">flip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L117-L121"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.flip" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.flip" title="simpletensor.tensor.Tensor.flip"><code class="xref py py-mod docutils literal notranslate"><span class="pre">flip</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.logn">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">logn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.718281828459045</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L96-L100"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.logn" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.logn" title="simpletensor.tensor.Tensor.logn"><code class="xref py py-mod docutils literal notranslate"><span class="pre">logn</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.matmul">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">matmul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L26-L30"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.matmul" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.__matmul__" title="simpletensor.tensor.Tensor.__matmul__"><code class="xref py py-mod docutils literal notranslate"><span class="pre">__matmul__</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.max">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L75-L79"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.max" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.max" title="simpletensor.tensor.Tensor.max"><code class="xref py py-mod docutils literal notranslate"><span class="pre">max</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.mean">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L54-L58"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.mean" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.mean" title="simpletensor.tensor.Tensor.mean"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mean</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.min">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L82-L86"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.min" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.min" title="simpletensor.tensor.Tensor.min"><code class="xref py py-mod docutils literal notranslate"><span class="pre">min</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.multiply">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">multiply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L19-L23"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.multiply" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.__mul__" title="simpletensor.tensor.Tensor.__mul__"><code class="xref py py-mod docutils literal notranslate"><span class="pre">__mul__</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.power">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L33-L37"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.power" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.__pow__" title="simpletensor.tensor.Tensor.__pow__"><code class="xref py py-mod docutils literal notranslate"><span class="pre">__pow__</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.relu">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">relu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L138-L142"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.relu" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.relu" title="simpletensor.tensor.Tensor.relu"><code class="xref py py-mod docutils literal notranslate"><span class="pre">relu</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.reshape">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">reshape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L131-L135"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.reshape" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.reshape" title="simpletensor.tensor.Tensor.reshape"><code class="xref py py-mod docutils literal notranslate"><span class="pre">reshape</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.show_graph">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">show_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L203-L260"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.show_graph" title="Link to this definition">#</a></dt>
+<dd><p>Returns a graphviz visualization of the computation graph,
+starting at this root Tensor. It shows all the Tensors, the Tensors’ names,
+shapes, dtypes, and all operations used to create all the Tensors in the
+graph. If the Tensor has size 1, then it will print the scalar within.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>root</strong><span class="classifier">Tensor</span></dt><dd><p>Root tensor for the computation graph. Anything beyond the root
+is not shown.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Digraph</dt><dd><p>GraphViz DiGraph object representing the computation graph</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.softmax">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">softmax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor" title="simpletensor.tensor.Tensor"><span class="pre">Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L145-L178"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.softmax" title="Link to this definition">#</a></dt>
+<dd><p>Numerically stable n-dimensional softmax computation over any axes. Converts
+input into valid probability distributions.</p>
+<p>Softmax is defined as:</p>
+<div class="math notranslate nohighlight">
+\[\text{softmax}(\vec x) = \frac{e^{\vec x}}{\sum_{i=1}^n e^{x_i}}\]</div>
+<p>However, the numerically stable version of softmax in this implementation is defined as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\text{Let x_stable}(\vec x) = \vec x - \text{max}(\vec x) \\
+\text{softmax_stable}(\vec x) =
+\frac{e^{\text{x_stable}(\vec x)}}{\sum_{i=1}^n e^{\text{x_stable}(\vec x)_i}}\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>a</strong><span class="classifier">Tensor</span></dt><dd><p>Input tensor</p>
+</dd>
+<dt><strong>axis</strong><span class="classifier">tuple of ints, optional</span></dt><dd><p>Axis over which values should be turned into a valid probability distribution, by default None</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Tensor</dt><dd><p>Output of softmax</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.squeeze">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">squeeze</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L110-L114"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.squeeze" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.squeeze" title="simpletensor.tensor.Tensor.squeeze"><code class="xref py py-mod docutils literal notranslate"><span class="pre">squeeze</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.std">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L61-L65"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.std" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.std" title="simpletensor.tensor.Tensor.std"><code class="xref py py-mod docutils literal notranslate"><span class="pre">std</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.subtract">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">subtract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L12-L16"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.subtract" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.__sub__" title="simpletensor.tensor.Tensor.__sub__"><code class="xref py py-mod docutils literal notranslate"><span class="pre">__sub__</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.sum">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L47-L51"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.sum" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.sum" title="simpletensor.tensor.Tensor.sum"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sum</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.transpose">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">transpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L103-L107"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.transpose" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.transpose" title="simpletensor.tensor.Tensor.transpose"><code class="xref py py-mod docutils literal notranslate"><span class="pre">transpose</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="simpletensor.functions.var">
+<span class="sig-prename descclassname"><span class="pre">simpletensor.functions.</span></span><span class="sig-name descname"><span class="pre">var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/VikramRangarajan/simpletensor/tree/main/src/simpletensor/functions.py#L68-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#simpletensor.functions.var" title="Link to this definition">#</a></dt>
+<dd><p>Helper function for <a class="reference internal" href="simpletensor.tensor.html#simpletensor.tensor.Tensor.var" title="simpletensor.tensor.Tensor.var"><code class="xref py py-mod docutils literal notranslate"><span class="pre">var</span></code></a></p>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="simpletensor.array_backend.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">simpletensor.array_backend</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="simpletensor.grad_manager.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">simpletensor.grad_manager</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.add"><code class="docutils literal notranslate"><span class="pre">add()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.categorical_cross_entropy"><code class="docutils literal notranslate"><span class="pre">categorical_cross_entropy()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.divide"><code class="docutils literal notranslate"><span class="pre">divide()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.exp"><code class="docutils literal notranslate"><span class="pre">exp()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.expand_dims"><code class="docutils literal notranslate"><span class="pre">expand_dims()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.flip"><code class="docutils literal notranslate"><span class="pre">flip()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.logn"><code class="docutils literal notranslate"><span class="pre">logn()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.matmul"><code class="docutils literal notranslate"><span class="pre">matmul()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.max"><code class="docutils literal notranslate"><span class="pre">max()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.mean"><code class="docutils literal notranslate"><span class="pre">mean()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.min"><code class="docutils literal notranslate"><span class="pre">min()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.multiply"><code class="docutils literal notranslate"><span class="pre">multiply()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.power"><code class="docutils literal notranslate"><span class="pre">power()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.relu"><code class="docutils literal notranslate"><span class="pre">relu()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.reshape"><code class="docutils literal notranslate"><span class="pre">reshape()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.show_graph"><code class="docutils literal notranslate"><span class="pre">show_graph()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.softmax"><code class="docutils literal notranslate"><span class="pre">softmax()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.squeeze"><code class="docutils literal notranslate"><span class="pre">squeeze()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.std"><code class="docutils literal notranslate"><span class="pre">std()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.subtract"><code class="docutils literal notranslate"><span class="pre">subtract()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.sum"><code class="docutils literal notranslate"><span class="pre">sum()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.transpose"><code class="docutils literal notranslate"><span class="pre">transpose()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simpletensor.functions.var"><code class="docutils literal notranslate"><span class="pre">var()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/simpletensor.functions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, Vikram Rangarajan, Ved Karamsetty.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

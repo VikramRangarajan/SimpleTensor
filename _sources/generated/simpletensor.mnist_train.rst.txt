@@ -1,0 +1,7 @@
+simpletensor.mnist\_train
+=========================
+
+.. automodule:: simpletensor.mnist_train
+   :members:
+   :show-inheritance:
+   :undoc-members:

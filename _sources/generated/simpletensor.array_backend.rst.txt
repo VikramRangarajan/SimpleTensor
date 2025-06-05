@@ -1,0 +1,7 @@
+simpletensor.array\_backend
+===========================
+
+.. automodule:: simpletensor.array_backend
+   :members:
+   :show-inheritance:
+   :undoc-members:

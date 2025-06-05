@@ -1,0 +1,7 @@
+simpletensor.tensor
+===================
+
+.. automodule:: simpletensor.tensor
+   :members:
+   :show-inheritance:
+   :undoc-members:

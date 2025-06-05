@@ -1,0 +1,7 @@
+simpletensor.grad\_manager
+==========================
+
+.. automodule:: simpletensor.grad_manager
+   :members:
+   :show-inheritance:
+   :undoc-members:
