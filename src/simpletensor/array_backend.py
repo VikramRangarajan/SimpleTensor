@@ -3,7 +3,7 @@ import importlib
 import warnings
 from importlib import util
 from types import ModuleType
-from typing import Any, Literal
+from typing import Any
 
 import numpy
 
@@ -16,9 +16,6 @@ except Exception:
 
     def get_array_module(*args) -> ModuleType:
         return numpy
-
-
-DeviceType = Literal["cpu", "cuda"]
 
 
 class Backend(ModuleType):

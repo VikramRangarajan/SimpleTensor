@@ -13,15 +13,11 @@ from ._types import (
     array_type,
     ellipsis,
 )
-from ._types import (
-    device as Device,
-)
-from ._types import (
-    dtype as Dtype,
-)
+from ._types import device as Device
+from ._types import dtype as Dtype
 
 
-class _array:
+class array:
     def __init__(self: array_type) -> None:
         """Initialize the attributes for the array object class."""
 
@@ -1272,6 +1268,3 @@ class _array:
         .. versionchanged:: 2023.12
            Clarified behavior when a provided ``device`` object corresponds to the device on which an array instance resides.
         """
-
-
-array = _array

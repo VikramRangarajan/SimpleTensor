@@ -1,11 +1,13 @@
 import random
 from typing import no_type_check
 
-from .array_backend import DeviceType, cupy, np, numpy, signal
+from .array_backend import cupy, np, numpy, signal
+from .array_api import array
+from .array_api._types import device as DeviceType
 from .operation import Op
 
 
-class Tensor:
+class Tensor(array):
     """
     Tensor class. This is a box around a numpy array, but with support for reverse mode automatic differentiation.
 
@@ -26,12 +28,11 @@ class Tensor:
         values,
         dtype=None,
         copy=True,
-        device: DeviceType = "cpu",
+        device: str = "cpu",
         name: str | None = None,
     ):
         dtype = dtype or np.float64
         self._array: numpy.ndarray = sequence_to_array(values, dtype, device, copy)
-        self.device: DeviceType = device
 
         # Gives tensor unique name
         if name is None:
@@ -64,7 +65,17 @@ class Tensor:
         return self._array.size
 
     @property
+    def device(self):
+        dev = str(self._array.device).lower()
+        dev = "cuda" if "cuda" in dev else dev
+        return dev
+
+    @property
     def T(self):
+        if self.ndim != 2:
+            raise ValueError(
+                f"Tensor.T requires a rank 2 tensor, but it is rank {self.ndim}"
+            )
         return self.transpose()
 
     def __repr__(self):
@@ -108,11 +119,11 @@ class Tensor:
                 "Can only call backward() on a single value Tensor"
             )
         topo_sorted_nodes = []
-        visited = set()
+        visited: set[str] = set()
 
-        def topological_sort(v):
-            if v not in visited:
-                visited.add(v)
+        def topological_sort(v: Tensor):
+            if v.name not in visited:
+                visited.add(v.name)
                 for parent in v._parents:
                     topological_sort(parent)
                 topo_sorted_nodes.append(v)
@@ -875,23 +886,25 @@ class Tensor:
         return res
 
 
-def sequence_to_array(seq, dtype, device: DeviceType, copy: bool) -> numpy.ndarray:
+def sequence_to_array(seq, dtype, device: str, copy: bool) -> numpy.ndarray:
     if isinstance(seq, numpy.ndarray):
         if device != "cpu":
             arr: numpy.ndarray = cupy.array(seq, dtype=dtype)
         else:
             arr = numpy.asarray(seq, dtype, copy=copy)
+    elif cupy is not None and isinstance(seq, cupy.ndarray) and device == "cpu":
+        arr = seq.get().astype(dtype)
     else:
         if cupy is None and device != "cpu":
-            raise ValueError("CuPy not installed, but requesting a cuda array")
-        if cupy is not None and device == "cpu" and isinstance(seq, cupy.ndarray):
-            arr = seq.get().astype(dtype)
+            raise ValueError("CuPy not available, but requesting a cuda array")
+        if device == "cpu":
+            arr = numpy.asarray(seq, dtype)
         else:
-            arr = np.asarray(seq, dtype)
+            arr = cupy.asarray(seq, dtype)
     return arr
 
 
-def astensor(a, dtype=None, device: DeviceType = "cpu"):
+def astensor(a, dtype=None, device: str = "cpu"):
     """
     Converts input to a Tensor
 

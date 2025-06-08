@@ -2,15 +2,16 @@
 __all__ = ["astype", "can_cast", "finfo", "iinfo", "isdtype", "result_type"]
 
 from ._types import (
-    Union,
+    Optional,
     Tuple,
+    Union,
     array_type,
+    device,
     dtype,
     finfo_object,
     iinfo_object,
-    device,
-    Optional,
 )
+from .simpletensor_compat import numpy_wrap
 
 
 def astype(
@@ -69,6 +70,7 @@ def astype(
     """
 
 
+@numpy_wrap
 def can_cast(from_: Union[dtype, array_type], to: dtype, /) -> bool:
     """
     Determines if one data type can be cast to another data type according to type promotion rules (see :ref:`type-promotion`).
@@ -96,6 +98,7 @@ def can_cast(from_: Union[dtype, array_type], to: dtype, /) -> bool:
     """
 
 
+@numpy_wrap
 def finfo(type: Union[dtype, array_type], /) -> finfo_object:
     """
     Machine limits for floating-point data types.
@@ -147,6 +150,7 @@ def finfo(type: Union[dtype, array_type], /) -> finfo_object:
     """
 
 
+@numpy_wrap
 def iinfo(type: Union[dtype, array_type], /) -> iinfo_object:
     """
     Machine limits for integer data types.
@@ -181,6 +185,7 @@ def iinfo(type: Union[dtype, array_type], /) -> iinfo_object:
     """
 
 
+@numpy_wrap
 def isdtype(
     dtype: dtype, kind: Union[dtype, str, Tuple[Union[dtype, str], ...]]
 ) -> bool:
@@ -224,6 +229,7 @@ def isdtype(
     """
 
 
+@numpy_wrap
 def result_type(
     *arrays_and_dtypes: Union[array_type, int, float, complex, bool, dtype],
 ) -> dtype:

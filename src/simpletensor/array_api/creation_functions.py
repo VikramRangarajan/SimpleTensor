@@ -31,8 +31,10 @@ from ._types import (
     device,
     dtype,
 )
+from .simpletensor_compat import array_api_creation_wrap, not_implemented
 
 
+@array_api_creation_wrap
 def arange(
     start: Union[int, float],
     /,
@@ -79,6 +81,8 @@ def asarray(
     device: Optional[device] = None,
     copy: Optional[bool] = None,
 ) -> array_type:
+    from ..tensor import astensor
+
     r"""
     Convert the input to an array.
 
@@ -126,8 +130,11 @@ def asarray(
     .. versionchanged:: 2022.12
        Added complex data type support.
     """
+    dev = str(device) or "cpu"
+    return astensor(obj, dtype=dtype, device=dev)
 
 
+@array_api_creation_wrap
 def empty(
     shape: Union[int, Tuple[int, ...]],
     *,
@@ -153,6 +160,7 @@ def empty(
     """
 
 
+@array_api_creation_wrap
 def empty_like(
     x: array_type, /, *, dtype: Optional[dtype] = None, device: Optional[device] = None
 ) -> array_type:
@@ -175,6 +183,7 @@ def empty_like(
     """
 
 
+@array_api_creation_wrap
 def eye(
     n_rows: int,
     n_cols: Optional[int] = None,
@@ -216,6 +225,7 @@ def eye(
     """
 
 
+@not_implemented
 def from_dlpack(
     x: object,
     /,
@@ -299,6 +309,7 @@ def from_dlpack(
     """
 
 
+@array_api_creation_wrap
 def full(
     shape: Union[int, Tuple[int, ...]],
     fill_value: Union[bool, int, float, complex],
@@ -342,6 +353,7 @@ def full(
     """
 
 
+@array_api_creation_wrap
 def full_like(
     x: array_type,
     /,
@@ -384,6 +396,7 @@ def full_like(
     """
 
 
+@array_api_creation_wrap
 def linspace(
     start: Union[int, float, complex],
     stop: Union[int, float, complex],
@@ -456,6 +469,7 @@ def linspace(
     """
 
 
+@not_implemented
 def meshgrid(
     *arrays: array_type, indexing: Literal["xy", "ij"] = "xy"
 ) -> List[array_type]:
@@ -491,6 +505,7 @@ def meshgrid(
     """
 
 
+@array_api_creation_wrap
 def ones(
     shape: Union[int, Tuple[int, ...]],
     *,
@@ -525,6 +540,7 @@ def ones(
     """
 
 
+@array_api_creation_wrap
 def ones_like(
     x: array_type, /, *, dtype: Optional[dtype] = None, device: Optional[device] = None
 ) -> array_type:
@@ -556,6 +572,7 @@ def ones_like(
     """
 
 
+@array_api_creation_wrap
 def tril(x: array_type, /, *, k: int = 0) -> array_type:
     """
     Returns the lower triangular part of a matrix (or a stack of matrices) ``x``.
@@ -580,6 +597,7 @@ def tril(x: array_type, /, *, k: int = 0) -> array_type:
     """
 
 
+@array_api_creation_wrap
 def triu(x: array_type, /, *, k: int = 0) -> array_type:
     """
     Returns the upper triangular part of a matrix (or a stack of matrices) ``x``.
@@ -604,6 +622,7 @@ def triu(x: array_type, /, *, k: int = 0) -> array_type:
     """
 
 
+@array_api_creation_wrap
 def zeros(
     shape: Union[int, Tuple[int, ...]],
     *,
@@ -629,6 +648,7 @@ def zeros(
     """
 
 
+@array_api_creation_wrap
 def zeros_like(
     x: array_type, /, *, dtype: Optional[dtype] = None, device: Optional[device] = None
 ) -> array_type:
