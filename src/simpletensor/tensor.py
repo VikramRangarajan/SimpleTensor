@@ -5,6 +5,7 @@ from .array_backend import cupy, np, numpy, signal
 from .array_api import array
 from .array_api._types import device as DeviceType
 from .operation import Op
+from string import ascii_letters, digits, punctuation
 
 
 class Tensor(array):
@@ -36,8 +37,8 @@ class Tensor(array):
 
         # Gives tensor unique name
         if name is None:
-            chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            self.name: str = "".join([random.choice(chars) for _ in range(10)])
+            chars = ascii_letters + digits + punctuation
+            self.name: str = "".join([random.choice(chars) for _ in range(30)])
         else:
             self.name = name
 
